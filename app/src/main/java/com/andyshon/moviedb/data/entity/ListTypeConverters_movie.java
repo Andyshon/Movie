@@ -17,18 +17,18 @@ public class ListTypeConverters_movie {
     static Gson gson = new Gson();
 
     @TypeConverter
-    public static List<MovieResults> stringToSomeObjectList(String data) {
+    public static List<MovieResult> stringToList(String data) {
         if (data == null) {
             return Collections.emptyList();
         }
 
-        Type listType = new TypeToken<List<MovieResults>>() {}.getType();
+        Type listType = new TypeToken<List<MovieResult>>() {}.getType();
 
         return gson.fromJson(data, listType);
     }
 
     @TypeConverter
-    public static String someObjectListToString(List<MovieResults> someObjects) {
+    public static String objectsToString(List<MovieResult> someObjects) {
         return gson.toJson(someObjects);
     }
 }

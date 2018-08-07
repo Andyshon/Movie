@@ -10,9 +10,9 @@ import java.util.List;
  * Created by andyshon on 06.08.18.
  */
 
-public class MovieResults {
+public class MovieResult {
 
-    public MovieResults() {}
+    public MovieResult() {}
 
 
     @SerializedName("vote_count")

@@ -1,12 +1,13 @@
 package com.andyshon.moviedb.data;
 
 import com.andyshon.moviedb.data.entity.Movie;
+import com.andyshon.moviedb.data.entity.MovieResult;
 import com.andyshon.moviedb.data.remote.RestClient;
 
 import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
 
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.API_KEY;
+import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.CURRENT_MOVIE_ID;
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.LANGUAGE;
 
 /**
@@ -17,8 +18,7 @@ public class MovieRepository {
 
     private static MovieRepository sInstance;
 
-    private final AppDatabase mDatabase;
-
+    private AppDatabase mDatabase;
 
     private MovieRepository(final AppDatabase database) {
         mDatabase = database;
@@ -35,17 +35,42 @@ public class MovieRepository {
         return sInstance;
     }
 
-    public Observable<Movie> fetchPopularMovies () {
-        // assume that we have internet connection
-        Observable<Movie> observableFromApi = null;
-        observableFromApi = get();
-
-        return observableFromApi;
+    public Observable<Movie> getPopularMovies (boolean hasConnection) {
+        // check internet connection
+        System.out.println("hasConnection:" + hasConnection);
+        if (hasConnection) {
+            return getPopularMoviesFromApi();
+        }
+        else {
+            return getPopularMoviesFromApi();
+        }
     }
 
-    private Observable<Movie> get() {
+    private Observable<Movie> getPopularMoviesFromApi() {
         return RestClient.getService().fetchPopularMovies(API_KEY, LANGUAGE, 1)
                 .doOnNext(movie -> {
+                    // insert every movie to local db
+                    //mDatabase.moviesDao().insertMovie(movie);
+                });
+    }
+
+
+
+    public Observable<MovieResult> getPopularMovieById (boolean hasConnection) {
+        // check internet connection
+        System.out.println("hasConnection:" + hasConnection);
+        if (hasConnection) {
+            return getMovieByIdFromApi();
+        }
+        else {
+            return getMovieByIdFromApi();
+        }
+    }
+
+    private Observable<MovieResult> getMovieByIdFromApi() {
+        return RestClient.getService().fetchMovieById(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
+                .doOnNext(movie -> {
+                    System.out.println("GET MOVIE BY ID:" + movie.getTitle()+":"+movie.getBackdrop_path());
                     // insert every movie to local db
                     //mDatabase.moviesDao().insertMovie(movie);
                 });

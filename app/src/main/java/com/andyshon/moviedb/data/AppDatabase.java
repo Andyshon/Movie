@@ -15,7 +15,7 @@ import com.andyshon.moviedb.data.local.MoviesDao;
 
 @Database(entities = {Movie.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
-    private static AppDatabase INSTANCE;
+    private static AppDatabase sInstance;
 
     @VisibleForTesting
     public static final String DATABASE_NAME = "movie-db";
@@ -23,13 +23,13 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract MoviesDao moviesDao();
 
     public static AppDatabase getInstance(final Context context) {
-        if (INSTANCE == null) {
+        if (sInstance == null) {
             synchronized (AppDatabase.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME).build();
+                if (sInstance == null) {
+                    sInstance = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME).build();
                 }
             }
         }
-        return INSTANCE;
+        return sInstance;
     }
 }

@@ -22,7 +22,7 @@ public class Movie {
 
     @TypeConverters(ListTypeConverters_movie.class)
     @SerializedName("results")
-    private List<MovieResults> movies;
+    private List<MovieResult> movies;
 
 
     public int getId() {
@@ -33,11 +33,11 @@ public class Movie {
         this.id = id;
     }
 
-    public List<MovieResults> getMovies() {
+    public List<MovieResult> getMovies() {
         return movies;
     }
 
-    public void setMovies(List<MovieResults> movies) {
+    public void setMovies(List<MovieResult> movies) {
         this.movies = movies;
     }
 }

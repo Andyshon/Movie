@@ -1,7 +1,6 @@
 package com.andyshon.moviedb.data.ui.adapter;
 
 import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,7 +10,7 @@ import android.widget.ImageView;
 
 import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
-import com.andyshon.moviedb.data.entity.MovieResults;
+import com.andyshon.moviedb.data.entity.MovieResult;
 import com.andyshon.moviedb.data.ui.MovieClickCallback;
 import com.squareup.picasso.Picasso;
 
@@ -22,7 +21,7 @@ import java.util.List;
  */
 
 public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.MovieViewHolder>{
-    private List<MovieResults> movies;
+    private List<MovieResult> movies;
 
     @Nullable
     private final MovieClickCallback mMovieClickCallback;
@@ -33,7 +32,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
     }
 
 
-    public void setMoviesList(final List<MovieResults> moviesList) {
+    public void setMoviesList(final List<MovieResult> moviesList) {
         movies = moviesList;
         notifyDataSetChanged();
     }
@@ -49,14 +48,15 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        MovieResults currMovie = movies.get(position);
-
-        holder.title.setText(currMovie.getTitle());
+        MovieResult currMovie = movies.get(position);
 
         String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(currMovie.getPoster_path());
         Picasso.get().load(imagePath).into(holder.image);
 
-        holder.card.setOnClickListener(view -> mMovieClickCallback.onClick(currMovie));
+        holder.card.setOnClickListener(view -> {
+            mMovieClickCallback.onClick(currMovie);
+            GlobalConstants.ApiConstants.CURRENT_MOVIE_ID = currMovie.getId();
+        });
     }
 
 
@@ -69,13 +69,11 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
     static class MovieViewHolder extends RecyclerView.ViewHolder {
 
         final ImageView image;
-        final AppCompatTextView title;
         final CardView card;
 
         MovieViewHolder(View view) {
             super(view);
             image = view.findViewById(R.id.image);
-            title = view.findViewById(R.id.title);
             card = view.findViewById(R.id.movie_item);
         }
     }

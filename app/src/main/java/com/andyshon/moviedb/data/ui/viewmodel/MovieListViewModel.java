@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 
 import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
+import com.andyshon.moviedb.data.Utils;
 import com.andyshon.moviedb.data.entity.Movie;
 
 import java.util.concurrent.TimeUnit;
@@ -22,56 +23,67 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MovieListViewModel extends AndroidViewModel {
 
-    private MutableLiveData<Movie> movieLiveData;
-    private MutableLiveData<String> movieLiveDataError;
+    private MutableLiveData<Movie> movieResult;
+    private MutableLiveData<String> movieError;
+    private MutableLiveData<Boolean> movieLoader;
 
-    private DisposableObserver<Movie> disposableObserver;
+    private DisposableObserver<Movie> popularMoviesObserver;
 
     private MovieRepository mRepository;
+    private Utils utils;
 
     public MovieListViewModel(@NonNull Application application) {
         super(application);
         mRepository = ((BasicApp)application).getRepository();
+        utils = ((BasicApp)application).getUtils();
+
+        movieError = new MutableLiveData<>();
+        movieLoader = new MutableLiveData<>();
     }
 
 
-    public LiveData<Movie> fetchPopularMovies() {
-        if (movieLiveData == null) {
-            movieLiveData = new MutableLiveData<>();
+    public MutableLiveData<String> movieError() {
+        return movieError;
+    }
+
+    public MutableLiveData<Boolean> movieLoader() {
+        return movieLoader;
+    }
+
+    public LiveData<Movie> movieResult() {
+        if (movieResult == null) {
+            movieResult = new MutableLiveData<>();
             loadPopularMovies();
         }
-        return movieLiveData;
+        return movieResult;
     }
 
     private void loadPopularMovies() {
 
-        disposableObserver = new DisposableObserver<Movie>() {
+        popularMoviesObserver = new DisposableObserver<Movie>() {
             @Override
-            public void onNext(Movie movieResults) {
-                movieLiveData.postValue(movieResults);
+            public void onComplete() {}
+
+            @Override
+            public void onNext(Movie movie) {
+                movieResult.postValue(movie);
+                movieLoader.postValue(false);
             }
 
             @Override
             public void onError(Throwable e) {
-                if (movieLiveDataError == null) {
-                    movieLiveDataError = new MutableLiveData<>();
-                }
-                movieLiveDataError.postValue(e.getMessage());
-            }
-
-            @Override
-            public void onComplete() {
-                // no-opt
+                movieError.postValue(e.getMessage());
+                movieLoader.postValue(false);
             }
         };
 
         // todo: should be a call to repository in which according to the internet connecting movies will fetching from server or local db
 
-        mRepository.fetchPopularMovies()
+        mRepository.getPopularMovies(utils.isConnectedToInternet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .debounce(400, TimeUnit.MILLISECONDS)
-                .subscribe(disposableObserver);
+                .subscribe(popularMoviesObserver);
     }
 
 }

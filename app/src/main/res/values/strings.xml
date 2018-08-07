@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MovieDb</string>
+    <string name="movie_title">Название</string>
+    <string name="movie_voute">Рейтинг</string>
+    <string name="movie_popularity">Популярность</string>
+    <string name="movie_overview">Описание</string>
 </resources>

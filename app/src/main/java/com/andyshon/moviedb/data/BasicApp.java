@@ -20,4 +20,8 @@ public class BasicApp extends Application {
     public MovieRepository getRepository() {
         return MovieRepository.getInstance(getDatabase());
     }
+
+    public Utils getUtils() {
+        return Utils.getInstance(this);
+    }
 }
