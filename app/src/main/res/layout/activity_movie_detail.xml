@@ -4,75 +4,104 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ececec"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:id="@+id/coordinator">
 
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="-15dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <android.support.v4.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="10dp"
         android:clipToPadding="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:background="#fff">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="0dp"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:paddingBottom="10dp"
-            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvTitle"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:hint="@string/movie_title"
-                android:textStyle="bold"
-                android:textColor="#565656"
-                android:textSize="25sp"/>
+                android:layout_height="match_parent"
+                android:layout_marginTop="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:hint="@string/movie_voute"
-                android:textColor="#565656"
-                android:textSize="19sp"/>
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:hint="@string/movie_title"
+                    android:textStyle="bold"
+                    android:textColor="#565656"
+                    android:textSize="25sp"/>
 
-            <TextView
-                android:id="@+id/tv2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:hint="@string/movie_popularity"
-                android:textColor="#565656"
-                android:textSize="19sp"/>
+                <TextView
+                    android:id="@+id/tv1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="@string/movie_voute"
+                    android:textColor="#565656"
+                    android:textSize="19sp"/>
 
-            <TextView
-                android:id="@+id/tvSubtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:hint="@string/movie_overview"
-                android:textColor="#565656"
-                android:textSize="19sp"/>
+                <TextView
+                    android:id="@+id/tv2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="@string/movie_popularity"
+                    android:textColor="#565656"
+                    android:textSize="19sp"/>
 
-            <com.pierfrancescosoffritti.androidyoutubeplayer.player.YouTubePlayerView
-                android:id="@+id/youtube_player_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dp"/>
+                <TextView
+                    android:id="@+id/tvSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="@string/movie_overview"
+                    android:textColor="#565656"
+                    android:textSize="19sp"/>
 
-        </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/trailersLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:padding="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvNoTrailers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/noTrailers"
+                        android:textSize="20sp"
+                        android:textColor="#dadada"
+                        android:fontFamily="serif"
+                        android:gravity="center_horizontal|center_vertical"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
 
 
 
     </android.support.v4.widget.NestedScrollView>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 
     <android.support.design.widget.AppBarLayout
@@ -87,9 +116,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            android:textAlignment="center"
             app:contentScrim="?attr/colorPrimary"
             app:expandedTitleMarginStart="8dp"
             app:expandedTitleMarginEnd="8dp"
+            app:expandedTitleGravity="center_vertical"
+            app:collapsedTitleGravity="center_vertical"
             android:fitsSystemWindows="true">
 
             <ImageView
@@ -107,14 +139,6 @@
                 android:layout_height="?android:attr/actionBarSize"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:layout_collapseMode="pin">
-
-            <ImageView
-                android:id="@+id/ivBack"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_back"
-                android:layout_gravity="start"/>
-
             </android.support.v7.widget.Toolbar>
 
 

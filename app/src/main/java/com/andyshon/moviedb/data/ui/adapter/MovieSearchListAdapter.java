@@ -11,7 +11,10 @@ import android.widget.ImageView;
 import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearch;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.ui.MovieClickCallback;
+import com.andyshon.moviedb.data.ui.MovieSearchClickCallback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -20,19 +23,19 @@ import java.util.List;
  * Created by andyshon on 06.08.18.
  */
 
-public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.MovieViewHolder>{
-    private List<MovieResult> movies;
+public class MovieSearchListAdapter extends RecyclerView.Adapter<MovieSearchListAdapter.MovieViewHolder>{
+    private MovieSearch movies;
 
     @Nullable
-    private final MovieClickCallback mMovieClickCallback;
+    private final MovieSearchClickCallback mMovieClickCallback;
 
 
-    public MovieListAdapter(@Nullable MovieClickCallback clickCallback) {
+    public MovieSearchListAdapter(@Nullable MovieSearchClickCallback clickCallback) {
         mMovieClickCallback = clickCallback;
     }
 
 
-    public void setMoviesList(final List<MovieResult> moviesList) {
+    public void setMoviesList(final MovieSearch moviesList) {
         movies = moviesList;
         notifyDataSetChanged();
     }
@@ -48,7 +51,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        MovieResult currMovie = movies.get(position);
+        MovieSearchResult currMovie = movies.getMovies().get(position);
 
         if (currMovie.getPoster_path() != null) {
             String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(currMovie.getPoster_path());
@@ -67,7 +70,7 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
 
     @Override
     public int getItemCount() {
-        return movies == null ? 0 : movies.size();
+        return movies == null ? 0 : movies.getMovies().size();
     }
 
 

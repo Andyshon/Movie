@@ -1,7 +1,10 @@
 package com.andyshon.moviedb.data.entity;
 
+import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.TypeConverters;
 
+import com.andyshon.moviedb.data.entity.converters.IntegerTypeConverters_movie;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -10,6 +13,7 @@ import java.util.List;
  * Created by andyshon on 06.08.18.
  */
 
+@Entity(tableName = "MovieResult")
 public class MovieResult {
 
     public MovieResult() {}
@@ -18,12 +22,15 @@ public class MovieResult {
     @SerializedName("vote_count")
     private int vote_count;
 
-    //@PrimaryKey(autoGenerate = false)
+    @PrimaryKey(autoGenerate = false)
     @SerializedName("id")
     private int id;
 
     @SerializedName("video")
     private boolean video;
+
+    @SerializedName("vote_average")
+    private double vote_average;
 
     @SerializedName("title")
     private String title;
@@ -40,11 +47,15 @@ public class MovieResult {
     @SerializedName("original_title")
     private String original_title;
 
+    @TypeConverters(IntegerTypeConverters_movie.class)
     @SerializedName("genre_ids")
     private List<Integer> genreIds;
 
     @SerializedName("backdrop_path")
     private String backdrop_path;
+
+    @SerializedName("adult")
+    private boolean adult;
 
     @SerializedName("overview")
     private String overview;
@@ -52,14 +63,6 @@ public class MovieResult {
     @SerializedName("release_date")
     private String release_date;
 
-
-    public List<Integer> getGenreIds() {
-        return genreIds;
-    }
-
-    public void setGenreIds(List<Integer> genreIds) {
-        this.genreIds = genreIds;
-    }
 
     public int getVote_count() {
         return vote_count;
@@ -83,6 +86,14 @@ public class MovieResult {
 
     public void setVideo(boolean video) {
         this.video = video;
+    }
+
+    public double getVote_average() {
+        return vote_average;
+    }
+
+    public void setVote_average(double vote_average) {
+        this.vote_average = vote_average;
     }
 
     public String getTitle() {
@@ -125,12 +136,28 @@ public class MovieResult {
         this.original_title = original_title;
     }
 
+    public List<Integer> getGenreIds() {
+        return genreIds;
+    }
+
+    public void setGenreIds(List<Integer> genreIds) {
+        this.genreIds = genreIds;
+    }
+
     public String getBackdrop_path() {
         return backdrop_path;
     }
 
     public void setBackdrop_path(String backdrop_path) {
         this.backdrop_path = backdrop_path;
+    }
+
+    public boolean isAdult() {
+        return adult;
+    }
+
+    public void setAdult(boolean adult) {
+        this.adult = adult;
     }
 
     public String getOverview() {

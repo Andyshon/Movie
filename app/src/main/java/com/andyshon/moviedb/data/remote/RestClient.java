@@ -1,9 +1,6 @@
 package com.andyshon.moviedb.data.remote;
 
 import com.andyshon.moviedb.data.GlobalConstants;
-import com.andyshon.moviedb.data.remote.IService;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import retrofit2.converter.gson.GsonConverterFactory;

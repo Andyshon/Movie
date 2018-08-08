@@ -20,13 +20,15 @@ import com.andyshon.moviedb.data.ui.viewmodel.MovieListViewModel;
 public class MainActivity extends AppCompatActivity implements MovieClickCallback {
 
     private MovieListViewModel viewModel;
-    private MovieListAdapter adapter;
+    private MovieListAdapter mAdapter;
     private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //deleteDatabase("movie-db");
 
         RestClient.initService();
 
@@ -35,11 +37,11 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
 
         progressBar = findViewById(R.id.progressbar);
 
-        adapter = new MovieListAdapter(this);
+        mAdapter = new MovieListAdapter(this);
         RecyclerView recyclerView = findViewById(R.id.recycler);
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(mAdapter);
 
         subscribeUI();
     }
@@ -47,15 +49,11 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
 
     private void subscribeUI() {
 
-        viewModel.movieResult().observe(this, movie -> {
-            if (movie != null) adapter.setMoviesList(movie.getMovies());
-        });
+        viewModel.movieResult().observe(this, movie -> { if (movie != null) mAdapter.setMoviesList(movie.getMovies()); });
 
-        viewModel.movieError().observe(this, s -> Toast.makeText(MainActivity.this, "Error:" + s, Toast.LENGTH_SHORT).show());
+        viewModel.movieError().observe(this, s -> Toast.makeText(MainActivity.this, "Error:" + s, Toast.LENGTH_LONG).show());
 
-        viewModel.movieLoader().observe(this, aBoolean -> {
-            if (!aBoolean) progressBar.setVisibility(View.GONE);
-        });
+        viewModel.movieLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); });
     }
 
 
@@ -63,5 +61,17 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
     public void onClick(MovieResult movie) {
         Intent intent = new Intent(this, MovieDetailActivity.class);
         startActivity(intent);
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        viewModel.disposeElements();
+        super.onDestroy();
+    }
+
+    public void search(View view) {
+        Intent intent = new Intent(MainActivity.this, MovieSearchActivity.class);
+        startActivityForResult(intent, 999);
     }
 }

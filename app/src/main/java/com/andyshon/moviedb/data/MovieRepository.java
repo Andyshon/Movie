@@ -1,7 +1,10 @@
 package com.andyshon.moviedb.data;
 
+import android.util.Log;
+
 import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieTrailer;
 import com.andyshon.moviedb.data.remote.RestClient;
 
 import io.reactivex.Observable;
@@ -15,6 +18,8 @@ import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.LANGUAGE;
  */
 
 public class MovieRepository {
+
+    private static final String TAG = "MovieRepository";
 
     private static MovieRepository sInstance;
 
@@ -36,43 +41,88 @@ public class MovieRepository {
     }
 
     public Observable<Movie> getPopularMovies (boolean hasConnection) {
-        // check internet connection
-        System.out.println("hasConnection:" + hasConnection);
+        Log.d(TAG, "hasConnection:" + hasConnection);
+
+        Observable<Movie> observableFromApi = null, observableFromDb = null;
         if (hasConnection) {
-            return getPopularMoviesFromApi();
+            observableFromApi = getPopularMoviesFromApi();
         }
-        else {
-            return getPopularMoviesFromApi();
+        observableFromDb = getPopularMoviesFromDb();
+
+        if (hasConnection) {
+            //return Observable.concatArrayEager(observableFromApi, observableFromDb);
+            return observableFromApi;
         }
+        else
+            return observableFromDb;
     }
 
     private Observable<Movie> getPopularMoviesFromApi() {
-        return RestClient.getService().fetchPopularMovies(API_KEY, LANGUAGE, 1)
+        return RestClient.getService().getPopularMovies(API_KEY, LANGUAGE, 1)
                 .doOnNext(movie -> {
                     // insert every movie to local db
-                    //mDatabase.moviesDao().insertMovie(movie);
+
+                    for (MovieResult movieResult : movie.getMovies()) {
+                        mDatabase.moviesDao().insertMoviePopular(movieResult);
+                    }
+                });
+    }
+
+    private Observable<Movie> getPopularMoviesFromDb() {
+        return mDatabase.moviesDao().queryPopularMovies()
+                .toObservable()
+                .doOnNext(movie -> {
+                    Log.e(TAG, String.valueOf(movie.getMovies().size()));
                 });
     }
 
 
+    public Observable<MovieResult> getMovieById (boolean hasConnection) {
+        Log.d(TAG, "hasConnection:" + hasConnection);
 
-    public Observable<MovieResult> getPopularMovieById (boolean hasConnection) {
-        // check internet connection
-        System.out.println("hasConnection:" + hasConnection);
+        Observable<MovieResult> observableFromApi = null, observableFromDb = null;
         if (hasConnection) {
-            return getMovieByIdFromApi();
+            observableFromApi = getMovieByIdFromApi();
         }
-        else {
-            return getMovieByIdFromApi();
+        observableFromDb = getMovieByIdFromDb();
+
+        if (hasConnection) {
+            return Observable.concatArrayEager(observableFromApi, observableFromDb);
         }
+        else
+            return observableFromDb;
     }
 
     private Observable<MovieResult> getMovieByIdFromApi() {
-        return RestClient.getService().fetchMovieById(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
+        return RestClient.getService().getMovieById(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
+                .doOnError(throwable -> System.out.println("THROWABLE:" + throwable.getMessage()))
                 .doOnNext(movie -> {
-                    System.out.println("GET MOVIE BY ID:" + movie.getTitle()+":"+movie.getBackdrop_path());
                     // insert every movie to local db
-                    //mDatabase.moviesDao().insertMovie(movie);
+                });
+    }
+
+    private Observable<MovieResult> getMovieByIdFromDb() {
+        return mDatabase.moviesDao().queryMovieById(GlobalConstants.ApiConstants.CURRENT_MOVIE_ID)
+                .toObservable()
+                .doOnNext(movieResult -> Log.e(TAG, "Movie from db:" + movieResult.getTitle()));
+    }
+
+
+
+    public Observable<MovieTrailer> getTrailerByMovieId (boolean hasConnection) {
+        Log.d(TAG, "hasConnection:" + hasConnection);
+        if (hasConnection) {
+            return getTrailerByMovieIdFromApi();
+        }
+        else {
+            return getTrailerByMovieIdFromApi();
+        }
+    }
+
+    private Observable<MovieTrailer> getTrailerByMovieIdFromApi() {
+        return RestClient.getService().getTrailersByMovieId(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
+                .doOnNext(movieResult -> {
+                    Log.d(TAG, "Get movie trailer by id:" + movieResult.getTrailers().size());
                 });
     }
 

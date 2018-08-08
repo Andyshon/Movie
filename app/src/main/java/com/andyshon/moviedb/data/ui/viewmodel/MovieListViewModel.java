@@ -10,6 +10,7 @@ import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
 import com.andyshon.moviedb.data.Utils;
 import com.andyshon.moviedb.data.entity.Movie;
+import com.andyshon.moviedb.data.entity.MovieSearch;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,6 +30,9 @@ public class MovieListViewModel extends AndroidViewModel {
 
     private DisposableObserver<Movie> popularMoviesObserver;
 
+
+    private MutableLiveData<MovieSearch> searchObserver;
+
     private MovieRepository mRepository;
     private Utils utils;
 
@@ -39,22 +43,19 @@ public class MovieListViewModel extends AndroidViewModel {
 
         movieError = new MutableLiveData<>();
         movieLoader = new MutableLiveData<>();
+        movieResult = new MutableLiveData<>();
+        loadPopularMovies();
     }
 
-
-    public MutableLiveData<String> movieError() {
+    public LiveData<String> movieError() {
         return movieError;
     }
 
-    public MutableLiveData<Boolean> movieLoader() {
+    public LiveData<Boolean> movieLoader() {
         return movieLoader;
     }
 
     public LiveData<Movie> movieResult() {
-        if (movieResult == null) {
-            movieResult = new MutableLiveData<>();
-            loadPopularMovies();
-        }
         return movieResult;
     }
 
@@ -86,4 +87,9 @@ public class MovieListViewModel extends AndroidViewModel {
                 .subscribe(popularMoviesObserver);
     }
 
+
+    public void disposeElements() {
+        System.out.println("dispose elements movie model");
+        if (popularMoviesObserver != null && !popularMoviesObserver.isDisposed()) popularMoviesObserver.dispose();
+    }
 }

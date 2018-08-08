@@ -7,13 +7,16 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 
 import com.andyshon.moviedb.data.entity.Movie;
+import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearch;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.local.MoviesDao;
 
 /**
  * Created by andyshon on 06.08.18.
  */
 
-@Database(entities = {Movie.class}, version = 1)
+@Database(entities = {Movie.class, MovieResult.class, MovieSearch.class, MovieSearchResult.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase sInstance;
 

@@ -21,8 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".data.ui.activity.MovieDetailActivity"
-            android:theme="@style/AppTheme2"/>
+        <activity
+            android:name=".data.ui.activity.MovieDetailActivity"
+            android:theme="@style/AppTheme2" />
+        <activity android:name=".data.ui.activity.YoutubePlayerActivity" />
+        <activity android:name=".data.ui.activity.MovieSearchActivity"></activity>
     </application>
 
 </manifest>

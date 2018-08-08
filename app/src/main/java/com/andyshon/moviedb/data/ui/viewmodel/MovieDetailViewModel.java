@@ -9,7 +9,10 @@ import android.support.annotation.NonNull;
 import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
 import com.andyshon.moviedb.data.Utils;
+import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
+import com.andyshon.moviedb.data.entity.MovieTrailer;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.observers.DisposableObserver;
@@ -24,10 +27,17 @@ public class MovieDetailViewModel extends AndroidViewModel {
     private MutableLiveData<MovieResult> movieResult;
     private MutableLiveData<String> movieError;
     private MutableLiveData<Boolean> movieLoader;
+
+    private MutableLiveData<MovieTrailer> trailerResult;
+    private MutableLiveData<String> trailerError;
+    private MutableLiveData<Boolean> trailerLoader;
+
     private MovieRepository repository;
     private Utils utils;
 
     private DisposableObserver<MovieResult> movieObserver;
+    private DisposableObserver<MovieTrailer> trailerObserver;
+
 
     public MovieDetailViewModel(@NonNull Application application) {
         super(application);
@@ -36,21 +46,28 @@ public class MovieDetailViewModel extends AndroidViewModel {
 
         movieError = new MutableLiveData<>();
         movieLoader = new MutableLiveData<>();
+        movieResult = new MutableLiveData<>();
+        loadMovieById();
+
+        trailerError = new MutableLiveData<>();
+        trailerLoader = new MutableLiveData<>();
+        trailerResult = new MutableLiveData<>();
+        loadTrailers();
     }
 
-    public MutableLiveData<String> movieError() {
+    public LiveData<String> movieError() {
         return movieError;
     }
 
-    public MutableLiveData<Boolean> movieLoader() {
+    public LiveData<Boolean> movieLoader() {
         return movieLoader;
     }
 
     public LiveData<MovieResult> movieByIdResult() {
-        if (movieResult == null) {
+        /*if (movieResult == null) {
             movieResult = new MutableLiveData<>();
-        }
-        loadMovieById();
+            loadMovieById();
+        }*/
         return movieResult;
     }
 
@@ -61,8 +78,8 @@ public class MovieDetailViewModel extends AndroidViewModel {
             public void onComplete() {}
 
             @Override
-            public void onNext(MovieResult movieResult) {
-                MovieDetailViewModel.this.movieResult.postValue(movieResult);
+            public void onNext(MovieResult result) {
+                movieResult.postValue(result);
                 movieLoader.postValue(false);
             }
 
@@ -75,10 +92,60 @@ public class MovieDetailViewModel extends AndroidViewModel {
 
         // todo: should be a call to repository in which according to the internet connecting movies will fetching from server or local db
 
-        repository.getPopularMovieById(utils.isConnectedToInternet())
+        repository.getMovieById(utils.isConnectedToInternet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(movieObserver);
     }
 
+
+
+    public LiveData<String> trailerError() {
+        return trailerError;
+    }
+
+    public LiveData<Boolean> trailerLoader() {
+        return trailerLoader;
+    }
+
+    public LiveData<MovieTrailer> trailerResult() {
+        /*if (trailerResult == null) {
+            trailerResult = new MutableLiveData<>();
+            loadTrailers();
+        }*/
+        return trailerResult;
+    }
+
+    private void loadTrailers() {
+        trailerObserver = new DisposableObserver<MovieTrailer>() {
+            @Override
+            public void onComplete() {}
+
+            @Override
+            public void onNext(MovieTrailer result) {
+                trailerResult.postValue(result);
+                trailerLoader.postValue(false);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                trailerError.postValue(e.getMessage());
+                trailerLoader.postValue(false);
+            }
+        };
+
+        // todo: should be a call to repository in which according to the internet connecting movies will fetching from server or local db
+
+        repository.getTrailerByMovieId(utils.isConnectedToInternet())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(trailerObserver);
+    }
+
+
+    public void disposeElements() {
+        System.out.println("dispose elements movie detail model");
+        if (movieObserver != null && !movieObserver.isDisposed()) movieObserver.dispose();
+        if (trailerObserver != null && !trailerObserver.isDisposed()) trailerObserver.dispose();
+    }
 }

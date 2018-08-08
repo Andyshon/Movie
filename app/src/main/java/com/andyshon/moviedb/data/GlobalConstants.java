@@ -1,5 +1,7 @@
 package com.andyshon.moviedb.data;
 
+import java.util.HashMap;
+
 /**
  * Created by andyshon on 06.08.18.
  */
@@ -12,5 +14,7 @@ public class GlobalConstants {
         public static final String IMAGE_PATH_W500 = "https://image.tmdb.org/t/p/w500/";
 
         public static int CURRENT_MOVIE_ID;
+
+        public static HashMap<String, Float> TRAILER_START_SECONDS = new HashMap<>();
     }
 }
