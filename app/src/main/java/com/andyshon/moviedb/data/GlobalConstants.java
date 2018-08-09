@@ -16,5 +16,7 @@ public class GlobalConstants {
         public static int CURRENT_MOVIE_ID;
 
         public static HashMap<String, Float> TRAILER_START_SECONDS = new HashMap<>();
+
+        public static int CURRENT_PAGE = 1;
     }
 }

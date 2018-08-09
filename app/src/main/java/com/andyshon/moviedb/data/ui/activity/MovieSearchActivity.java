@@ -1,16 +1,18 @@
 package com.andyshon.moviedb.data.ui.activity;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.andyshon.moviedb.R;
-import com.andyshon.moviedb.data.entity.MovieSearch;
 import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.remote.RestClient;
 import com.andyshon.moviedb.data.ui.MovieSearchClickCallback;
@@ -18,12 +20,10 @@ import com.andyshon.moviedb.data.ui.adapter.MovieSearchListAdapter;
 
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.ObservableSource;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
 
@@ -45,45 +45,65 @@ public class MovieSearchActivity extends AppCompatActivity implements MovieSearc
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setAdapter(mAdapter);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         progressBar = findViewById(R.id.progressbar);
         progressBar.setVisibility(View.GONE);
         searchView = findViewById(R.id.searchView);
+        searchView.onActionViewExpanded();
 
-
-
-
-
-        RxSearchObservable.fromView(searchView)
-                .debounce(500, TimeUnit.MILLISECONDS)
-                .filter(new Predicate<String>() {
-                    @Override
-                    public boolean test(String text) throws Exception {
-                        return !text.isEmpty();
-                    }
-                })
+        searchViewSubject()
+                .debounce(1000, TimeUnit.MILLISECONDS)
+                .filter(text -> !text.isEmpty())
                 .distinctUntilChanged()
-                .switchMap(new Function<String, ObservableSource<MovieSearch>>() {
-                    @Override
-                    public ObservableSource<MovieSearch> apply(String query) throws Exception {
-                        return RestClient.getService().getSearchMovies(API_KEY, LANGUAGE, query, 1, false);
-                    }
-                })
+                .switchMap(query -> RestClient.getService().getSearchMovies(API_KEY, LANGUAGE, query, 1, false))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<MovieSearch>() {
-                    @Override
-                    public void accept(MovieSearch result) throws Exception {
-                        Toast.makeText(MovieSearchActivity.this, "find " + result.getMovies().size() + " movies!", Toast.LENGTH_SHORT).show();
-                        mAdapter.setMoviesList(result);
-                        hideProgressbar();
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Toast.makeText(MovieSearchActivity.this, "error :D" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                        hideProgressbar();
-                    }
+                .subscribe(result -> {
+                    Toast.makeText(MovieSearchActivity.this, "Найдено " + result.getMovies().size() + " фильмов!", Toast.LENGTH_SHORT).show();
+                    mAdapter.setMoviesList(result);
+                    hideProgressbar();
+                }, throwable -> {
+                    Toast.makeText(MovieSearchActivity.this, "Ошибка во время поиска:" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                    hideProgressbar();
                 });
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    public Observable<String> searchViewSubject() {
+
+        final PublishSubject<String> subject = PublishSubject.create();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                subject.onComplete();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String text) {
+                if (text.isEmpty())
+                        hideProgressbar();
+                else showProgressbar();
+                subject.onNext(text);
+                return true;
+            }
+        });
+
+        return subject;
     }
 
 
@@ -97,6 +117,13 @@ public class MovieSearchActivity extends AppCompatActivity implements MovieSearc
 
     @Override
     public void onClick(MovieSearchResult movie) {
-        Toast.makeText(this, movie.getTitle(), Toast.LENGTH_SHORT).show();
+        CURRENT_MOVIE_ID = movie.getId();
+
+//        Intent intent = new Intent();
+//        setResult(RESULT_OK, intent);
+//        finish();
+
+        Intent intent = new Intent(this, MovieDetailActivity.class);
+        startActivity(intent);
     }
 }

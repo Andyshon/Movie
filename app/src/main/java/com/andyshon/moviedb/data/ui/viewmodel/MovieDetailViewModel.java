@@ -9,9 +9,7 @@ import android.support.annotation.NonNull;
 import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
 import com.andyshon.moviedb.data.Utils;
-import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
-import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -64,14 +62,12 @@ public class MovieDetailViewModel extends AndroidViewModel {
     }
 
     public LiveData<MovieResult> movieByIdResult() {
-        /*if (movieResult == null) {
-            movieResult = new MutableLiveData<>();
-            loadMovieById();
-        }*/
         return movieResult;
     }
 
     private void loadMovieById() {
+
+        System.out.println("loadMovieById");
 
         movieObserver = new DisposableObserver<MovieResult>() {
             @Override
@@ -90,8 +86,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
             }
         };
 
-        // todo: should be a call to repository in which according to the internet connecting movies will fetching from server or local db
-
         repository.getMovieById(utils.isConnectedToInternet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -109,10 +103,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
     }
 
     public LiveData<MovieTrailer> trailerResult() {
-        /*if (trailerResult == null) {
-            trailerResult = new MutableLiveData<>();
-            loadTrailers();
-        }*/
         return trailerResult;
     }
 
@@ -134,8 +124,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
             }
         };
 
-        // todo: should be a call to repository in which according to the internet connecting movies will fetching from server or local db
-
         repository.getTrailerByMovieId(utils.isConnectedToInternet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -144,7 +132,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
 
 
     public void disposeElements() {
-        System.out.println("dispose elements movie detail model");
         if (movieObserver != null && !movieObserver.isDisposed()) movieObserver.dispose();
         if (trailerObserver != null && !trailerObserver.isDisposed()) trailerObserver.dispose();
     }

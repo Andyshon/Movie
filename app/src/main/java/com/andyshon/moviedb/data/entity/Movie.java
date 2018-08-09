@@ -21,6 +21,9 @@ public class Movie {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
+    @SerializedName("page")
+    private int page;
+
     @TypeConverters(ListTypeConverters_movie.class)
     @SerializedName("results")
     private List<MovieResult> movies;
@@ -32,6 +35,14 @@ public class Movie {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
     }
 
     public List<MovieResult> getMovies() {

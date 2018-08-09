@@ -17,13 +17,15 @@ import io.reactivex.Single;
 @Dao
 public interface MoviesDao {
 
-    @Query("SELECT * FROM Movie")
-    Single<Movie> queryPopularMovies();
+    @Query("SELECT * FROM Movie where page = :page")
+    Single<Movie> queryPopularMovies(int page);
 
     @Query("SELECT * FROM MovieResult where id = :id")
     Single<MovieResult> queryMovieById(int id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMoviePopular(MovieResult movieResult);
+    void insertMoviePopular(Movie movie);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertSingleMovie(MovieResult movieResult);
 }

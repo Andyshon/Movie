@@ -10,7 +10,6 @@ import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
 import com.andyshon.moviedb.data.Utils;
 import com.andyshon.moviedb.data.entity.Movie;
-import com.andyshon.moviedb.data.entity.MovieSearch;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,9 +28,6 @@ public class MovieListViewModel extends AndroidViewModel {
     private MutableLiveData<Boolean> movieLoader;
 
     private DisposableObserver<Movie> popularMoviesObserver;
-
-
-    private MutableLiveData<MovieSearch> searchObserver;
 
     private MovieRepository mRepository;
     private Utils utils;
@@ -78,8 +74,6 @@ public class MovieListViewModel extends AndroidViewModel {
             }
         };
 
-        // todo: should be a call to repository in which according to the internet connecting movies will fetching from server or local db
-
         mRepository.getPopularMovies(utils.isConnectedToInternet())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -89,7 +83,6 @@ public class MovieListViewModel extends AndroidViewModel {
 
 
     public void disposeElements() {
-        System.out.println("dispose elements movie model");
         if (popularMoviesObserver != null && !popularMoviesObserver.isDisposed()) popularMoviesObserver.dispose();
     }
 }

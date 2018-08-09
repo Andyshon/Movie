@@ -11,6 +11,7 @@ import io.reactivex.Observable;
 
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.API_KEY;
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.CURRENT_MOVIE_ID;
+import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.CURRENT_PAGE;
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.LANGUAGE;
 
 /**
@@ -50,29 +51,28 @@ public class MovieRepository {
         observableFromDb = getPopularMoviesFromDb();
 
         if (hasConnection) {
-            //return Observable.concatArrayEager(observableFromApi, observableFromDb);
-            return observableFromApi;
+            return Observable.concatArrayEager(observableFromApi, observableFromDb);
         }
         else
             return observableFromDb;
     }
 
     private Observable<Movie> getPopularMoviesFromApi() {
-        return RestClient.getService().getPopularMovies(API_KEY, LANGUAGE, 1)
+        return RestClient.getService().getPopularMovies(API_KEY, LANGUAGE, CURRENT_PAGE)
                 .doOnNext(movie -> {
                     // insert every movie to local db
-
                     for (MovieResult movieResult : movie.getMovies()) {
-                        mDatabase.moviesDao().insertMoviePopular(movieResult);
+                        mDatabase.moviesDao().insertSingleMovie(movieResult);
                     }
+                    mDatabase.moviesDao().insertMoviePopular(movie);
                 });
     }
 
     private Observable<Movie> getPopularMoviesFromDb() {
-        return mDatabase.moviesDao().queryPopularMovies()
+        return mDatabase.moviesDao().queryPopularMovies(CURRENT_PAGE)
                 .toObservable()
                 .doOnNext(movie -> {
-                    Log.e(TAG, String.valueOf(movie.getMovies().size()));
+                    Log.e(TAG, "queryPopularMovies from db:" + String.valueOf(movie.getMovies().size()));
                 });
     }
 
@@ -97,12 +97,13 @@ public class MovieRepository {
         return RestClient.getService().getMovieById(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
                 .doOnError(throwable -> System.out.println("THROWABLE:" + throwable.getMessage()))
                 .doOnNext(movie -> {
-                    // insert every movie to local db
+                    // insert single movie to local db
+                    mDatabase.moviesDao().insertSingleMovie(movie);
                 });
     }
 
     private Observable<MovieResult> getMovieByIdFromDb() {
-        return mDatabase.moviesDao().queryMovieById(GlobalConstants.ApiConstants.CURRENT_MOVIE_ID)
+        return mDatabase.moviesDao().queryMovieById(CURRENT_MOVIE_ID)
                 .toObservable()
                 .doOnNext(movieResult -> Log.e(TAG, "Movie from db:" + movieResult.getTitle()));
     }

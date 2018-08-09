@@ -19,7 +19,6 @@ import android.widget.Toast;
 import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
-import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
 import com.andyshon.moviedb.data.entity.MovieTrailerResult;
 import com.andyshon.moviedb.data.ui.viewmodel.MovieDetailViewModel;
@@ -39,7 +38,7 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
     private MovieDetailViewModel viewModel;
     private CollapsingToolbarLayout collapsingToolbarLayout;
     private ImageView ivImage;
-    private TextView tvTitle, tvSubTitle, tv1, tv2, tvNoTrailers;
+    private TextView tvTitle, tvSubTitle, tv1, tv2, tv3, tv4, tvNoTrailers;
     private ProgressBar progressBar;
     private LinearLayout trailersLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -64,6 +63,8 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
         tvSubTitle = findViewById(R.id.tvSubtitle);
         tv1 = findViewById(R.id.tv1);
         tv2 = findViewById(R.id.tv2);
+        tv3 = findViewById(R.id.tv3);
+        tv4 = findViewById(R.id.tv4);
         tvNoTrailers = findViewById(R.id.tvNoTrailers);
         tvNoTrailers.setVisibility(View.GONE);
 
@@ -91,7 +92,6 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
             return true;
         }
         return super.onOptionsItemSelected(item);
-
     }
 
     private void subscribeUI() {
@@ -112,8 +112,12 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
         tvSubTitle.setText("Описание: ".concat(movie.getOverview()));
         tv1.setText("Рейтинг: ".concat(String.valueOf(movie.getVote_count())));
         tv2.setText("Популярность: ".concat(String.valueOf(movie.getPopularity())));
-        String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(movie.getBackdrop_path());
-        Picasso.get().load(imagePath).placeholder(R.drawable.ic_launcher_foreground).error(R.drawable.ic_launcher_foreground).into(ivImage);
+        tv3.setText("Дата выхода: ".concat(movie.getRelease_date()));
+        tv4.setText("Средняя оценка: ".concat(String.valueOf(movie.getVote_average())));
+        if (movie.getBackdrop_path() != null) {
+            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(movie.getBackdrop_path());
+            Picasso.get().load(imagePath).placeholder(R.drawable.ic_launcher_foreground).error(R.drawable.ic_launcher_foreground).into(ivImage);
+        }
     }
 
     private void updateTrailersUI(MovieTrailer movieTrailer) {
@@ -130,8 +134,6 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
             youTubePlayerView.addFullScreenListener(new YouTubePlayerFullScreenListener() {
                 @Override
                 public void onYouTubePlayerEnterFullScreen() {
-                    Toast.makeText(MovieDetailActivity.this, "onYouTubePlayerEnterFullScreen", Toast.LENGTH_SHORT).show();
-
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v="
                             .concat(trailer.getKey()).concat("&t=").concat(String.valueOf(trailer.getKey()).concat("s"))));
                     intent.putExtra("force_fullscreen", true);
@@ -139,9 +141,7 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
                 }
 
                 @Override
-                public void onYouTubePlayerExitFullScreen() {
-                    Toast.makeText(MovieDetailActivity.this, "onYouTubePlayerExitFullScreen", Toast.LENGTH_SHORT).show();
-                }
+                public void onYouTubePlayerExitFullScreen() {}
             });
 
             youTubePlayerViewList.add(youTubePlayerView);
