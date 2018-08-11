@@ -14,4 +14,6 @@
     <string name="search">Search</string>
     <string name="release_date">Дата выхода</string>
     <string name="vote_average">Средняя оценка</string>
+
+    <string name="language">ru-RU</string>
 </resources>

@@ -13,9 +13,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".data.ui.activity.MainActivity"
-            android:theme="@style/AppTheme2">
+        android:theme="@style/AppThemeNoActionBar">
+        <activity android:name=".data.ui.activity.MovieListActivity"
+
+            android:theme="@style/AppThemeNoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,10 +25,10 @@
         </activity>
         <activity
             android:name=".data.ui.activity.MovieDetailActivity"
-            android:theme="@style/AppTheme2" />
+            android:theme="@style/AppThemeTransparentStatusBar" />
         <activity
             android:name=".data.ui.activity.MovieSearchActivity"
-            android:theme="@style/AppTheme2"/>
+            android:theme="@style/AppThemeNoActionBar"/>
     </application>
 
 </manifest>
