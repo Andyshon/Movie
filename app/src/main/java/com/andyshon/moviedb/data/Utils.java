@@ -10,29 +10,7 @@ import android.net.NetworkInfo;
 
 public class Utils {
 
-    private static Utils mInstance;
-    private Context mContext;
-
-    public Utils(Context context) {
-        mContext = context;
-    }
-
-    public Context getmContext() {
-        return mContext;
-    }
-
-    public static Utils getInstance(final Context context) {
-        if (mInstance == null) {
-            synchronized (Utils.class) {
-                if (mInstance == null) {
-                    mInstance = new Utils(context);
-                }
-            }
-        }
-        return mInstance;
-    }
-
-    public boolean isConnectedToInternet() {
+    public static boolean hasInternet(Context mContext) {
         ConnectivityManager cm = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();

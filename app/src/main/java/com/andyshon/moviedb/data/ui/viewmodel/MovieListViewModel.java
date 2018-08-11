@@ -8,10 +8,11 @@ import android.support.annotation.NonNull;
 
 import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
-import com.andyshon.moviedb.data.Utils;
 import com.andyshon.moviedb.data.entity.Movie;
 
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.observers.DisposableObserver;
@@ -29,18 +30,16 @@ public class MovieListViewModel extends AndroidViewModel {
 
     private DisposableObserver<Movie> popularMoviesObserver;
 
-    private MovieRepository mRepository;
-    private Utils utils;
+    @Inject
+    MovieRepository mRepository;
 
     public MovieListViewModel(@NonNull Application application) {
         super(application);
-        mRepository = ((BasicApp)application).getRepository();
-        utils = ((BasicApp)application).getUtils();
+        mRepository = BasicApp.getApp().getActivityComponent().movieRepository();
 
         movieError = new MutableLiveData<>();
         movieLoader = new MutableLiveData<>();
         movieResult = new MutableLiveData<>();
-        loadPopularMovies();
     }
 
     public LiveData<String> movieError() {
@@ -52,6 +51,7 @@ public class MovieListViewModel extends AndroidViewModel {
     }
 
     public LiveData<Movie> movieResult() {
+        loadPopularMovies();
         return movieResult;
     }
 
@@ -74,7 +74,7 @@ public class MovieListViewModel extends AndroidViewModel {
             }
         };
 
-        mRepository.getPopularMovies(utils.isConnectedToInternet())
+        mRepository.getPopularMovies()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .debounce(400, TimeUnit.MILLISECONDS)

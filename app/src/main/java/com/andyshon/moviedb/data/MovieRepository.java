@@ -1,18 +1,21 @@
 package com.andyshon.moviedb.data;
 
-import android.util.Log;
+import android.content.Context;
 
+import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearch;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
-import com.andyshon.moviedb.data.remote.RestClient;
+import com.andyshon.moviedb.data.local.MoviesDao;
+import com.andyshon.moviedb.data.remote.TheMovieDbService;
+
+import javax.inject.Inject;
 
 import io.reactivex.Observable;
 
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.API_KEY;
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.CURRENT_MOVIE_ID;
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.CURRENT_PAGE;
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.LANGUAGE;
+import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
 
 /**
  * Created by andyshon on 06.08.18.
@@ -20,111 +23,168 @@ import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.LANGUAGE;
 
 public class MovieRepository {
 
-    private static final String TAG = "MovieRepository";
+    private MoviesDao moviesDao;
+    private TheMovieDbService theMovieDbService;
 
-    private static MovieRepository sInstance;
+    private Context context;
 
-    private AppDatabase mDatabase;
-
-    private MovieRepository(final AppDatabase database) {
-        mDatabase = database;
+    @Inject
+    public MovieRepository (MoviesDao moviesDao, TheMovieDbService theMovieDbService, Context context) {
+        this.moviesDao = moviesDao;
+        this.theMovieDbService = theMovieDbService;
+        this.context = context;
     }
 
-    public static MovieRepository getInstance(final AppDatabase database) {
-        if (sInstance == null) {
-            synchronized (MovieRepository.class) {
-                if (sInstance == null) {
-                    sInstance = new MovieRepository(database);
-                }
-            }
-        }
-        return sInstance;
-    }
 
-    public Observable<Movie> getPopularMovies (boolean hasConnection) {
-        Log.d(TAG, "hasConnection:" + hasConnection);
+    /**
+     * Returns popular movies
+     */
+    public Observable<Movie> getPopularMovies () {
 
         Observable<Movie> observableFromApi = null, observableFromDb = null;
-        if (hasConnection) {
+        if (Utils.hasInternet(context))
             observableFromApi = getPopularMoviesFromApi();
-        }
         observableFromDb = getPopularMoviesFromDb();
 
-        if (hasConnection) {
+        if (Utils.hasInternet(context))
             return Observable.concatArrayEager(observableFromApi, observableFromDb);
-        }
-        else
-            return observableFromDb;
+        else return observableFromDb;
     }
 
+    /**
+     * Returns popular movies from server API
+     */
     private Observable<Movie> getPopularMoviesFromApi() {
-        return RestClient.getService().getPopularMovies(API_KEY, LANGUAGE, CURRENT_PAGE)
+        return theMovieDbService.getPopularMovies(API_KEY, String.valueOf(R.string.language), CURRENT_PAGE)
                 .doOnNext(movie -> {
-                    // insert every movie to local db
-                    for (MovieResult movieResult : movie.getMovies()) {
-                        mDatabase.moviesDao().insertSingleMovie(movieResult);
-                    }
-                    mDatabase.moviesDao().insertMoviePopular(movie);
+                    for (MovieResult movieResult : movie.getMovies())
+                        moviesDao.insertSingleMovie(movieResult);
+                    moviesDao.insertMoviePopular(movie);
                 });
     }
 
+    /**
+     * Returns popular movies from Room
+     */
     private Observable<Movie> getPopularMoviesFromDb() {
-        return mDatabase.moviesDao().queryPopularMovies(CURRENT_PAGE)
-                .toObservable()
-                .doOnNext(movie -> {
-                    Log.e(TAG, "queryPopularMovies from db:" + String.valueOf(movie.getMovies().size()));
-                });
+        return moviesDao.queryPopularMovies(CURRENT_PAGE).toObservable();
     }
 
 
-    public Observable<MovieResult> getMovieById (boolean hasConnection) {
-        Log.d(TAG, "hasConnection:" + hasConnection);
+    /**
+     * Returns movie by id, also store movie in Room
+     */
+    public Observable<MovieResult> getMovieById () {
 
         Observable<MovieResult> observableFromApi = null, observableFromDb = null;
-        if (hasConnection) {
+        if (Utils.hasInternet(context))
             observableFromApi = getMovieByIdFromApi();
-        }
         observableFromDb = getMovieByIdFromDb();
 
-        if (hasConnection) {
+        if (Utils.hasInternet(context))
             return Observable.concatArrayEager(observableFromApi, observableFromDb);
-        }
-        else
-            return observableFromDb;
+        else return observableFromDb;
     }
 
+    /**
+     * Returns movie by id from server API
+     */
     private Observable<MovieResult> getMovieByIdFromApi() {
-        return RestClient.getService().getMovieById(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
-                .doOnError(throwable -> System.out.println("THROWABLE:" + throwable.getMessage()))
-                .doOnNext(movie -> {
-                    // insert single movie to local db
-                    mDatabase.moviesDao().insertSingleMovie(movie);
-                });
+        return theMovieDbService.getMovieById(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
     }
 
+    /**
+     * Returns movie by id from Room
+     */
     private Observable<MovieResult> getMovieByIdFromDb() {
-        return mDatabase.moviesDao().queryMovieById(CURRENT_MOVIE_ID)
-                .toObservable()
-                .doOnNext(movieResult -> Log.e(TAG, "Movie from db:" + movieResult.getTitle()));
+        return moviesDao.queryMovieById(CURRENT_MOVIE_ID).toObservable();
     }
 
 
-
-    public Observable<MovieTrailer> getTrailerByMovieId (boolean hasConnection) {
-        Log.d(TAG, "hasConnection:" + hasConnection);
-        if (hasConnection) {
+    /**
+     * Returns trailer by movie id
+     */
+    public Observable<MovieTrailer> getTrailerByMovieId () {
+        if (Utils.hasInternet(context))
             return getTrailerByMovieIdFromApi();
-        }
-        else {
-            return getTrailerByMovieIdFromApi();
-        }
+        else return getTrailerByMovieIdFromApi();
     }
 
+    /**
+     * Returns trailer by movie id from server API
+     */
     private Observable<MovieTrailer> getTrailerByMovieIdFromApi() {
-        return RestClient.getService().getTrailersByMovieId(CURRENT_MOVIE_ID, API_KEY, LANGUAGE)
-                .doOnNext(movieResult -> {
-                    Log.d(TAG, "Get movie trailer by id:" + movieResult.getTrailers().size());
+        return theMovieDbService.getTrailersByMovieId(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
+    }
+
+
+
+    /**
+     * Returns search movie
+     * @param query String movie title
+     */
+    public Observable<MovieSearch> getSearchMovies (String query) {
+
+        Observable<MovieSearch> observableFromApi = null, observableFromDb = null;
+        if (Utils.hasInternet(context))
+            observableFromApi = getSearchMoviesFromApi(query);
+        observableFromDb = getSearchMoviesFromDb(query);
+
+        if (Utils.hasInternet(context))
+            return Observable.concatArrayEager(observableFromApi, observableFromDb);
+        else return observableFromDb;
+    }
+
+    /**
+     * Returns search movie from server API, also insert found search movie to Room
+     * @param query String movie title
+     */
+    private Observable<MovieSearch> getSearchMoviesFromApi(String query) {
+        return theMovieDbService.getSearchMovies(API_KEY, String.valueOf(R.string.language), query, 1, false)
+                .doOnNext(movie -> {
+                    moviesDao.deleteAllMovieSearch();
+                    for (MovieSearchResult movieResult : movie.getMovies()) {
+                        moviesDao.insertSingleMovieSearch(movieResult);
+                    }
+                    moviesDao.insertMovieSearch(movie);
                 });
     }
 
+    /**
+     * Returns search movie from Room
+     * @param query String movie title. Not used. Find movies in first page.
+     */
+    private Observable<MovieSearch> getSearchMoviesFromDb(String query) {
+        return moviesDao.queryMovieSearch(/*query*/1).toObservable();
+    }
+
+
+    /**
+     * Returns search movie by id
+     */
+    public Observable<MovieSearchResult> getMovieSearchById () {
+
+        Observable<MovieSearchResult> observableFromApi = null, observableFromDb = null;
+        if (Utils.hasInternet(context))
+            observableFromApi = getMovieSearchByIdFromApi();
+        observableFromDb = getMovieSearchByIdFromDb();
+
+        if (Utils.hasInternet(context))
+            return Observable.concatArrayEager(observableFromApi, observableFromDb);
+        else return observableFromDb;
+    }
+
+    /**
+     * Returns search movie by id from server API, also insert found movie to Room
+     */
+    private Observable<MovieSearchResult> getMovieSearchByIdFromApi() {
+        return theMovieDbService.getMovieSearchById(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
+    }
+
+    /**
+     * Returns search movie by id from Room
+     */
+    private Observable<MovieSearchResult> getMovieSearchByIdFromDb() {
+        return moviesDao.queryMovieSearchById(CURRENT_MOVIE_ID).toObservable();
+    }
 }

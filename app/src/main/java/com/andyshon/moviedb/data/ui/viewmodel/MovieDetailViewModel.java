@@ -8,9 +8,11 @@ import android.support.annotation.NonNull;
 
 import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
-import com.andyshon.moviedb.data.Utils;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
+
+import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.observers.DisposableObserver;
@@ -30,17 +32,22 @@ public class MovieDetailViewModel extends AndroidViewModel {
     private MutableLiveData<String> trailerError;
     private MutableLiveData<Boolean> trailerLoader;
 
-    private MovieRepository repository;
-    private Utils utils;
-
     private DisposableObserver<MovieResult> movieObserver;
     private DisposableObserver<MovieTrailer> trailerObserver;
 
 
+    private MutableLiveData<MovieSearchResult> movieSearchResult;
+    private MutableLiveData<String> movieSearchError;
+    private MutableLiveData<Boolean> movieSearchLoader;
+    private DisposableObserver<MovieSearchResult> movieSearchObserver;
+
+    @Inject
+    MovieRepository mRepository;
+
+
     public MovieDetailViewModel(@NonNull Application application) {
         super(application);
-        repository = ((BasicApp) application).getRepository();
-        utils = ((BasicApp)application).getUtils();
+        mRepository = BasicApp.getApp().getActivityComponent().movieRepository();
 
         movieError = new MutableLiveData<>();
         movieLoader = new MutableLiveData<>();
@@ -51,6 +58,11 @@ public class MovieDetailViewModel extends AndroidViewModel {
         trailerLoader = new MutableLiveData<>();
         trailerResult = new MutableLiveData<>();
         loadTrailers();
+
+
+        movieSearchError = new MutableLiveData<>();
+        movieSearchLoader = new MutableLiveData<>();
+        movieSearchResult = new MutableLiveData<>();
     }
 
     public LiveData<String> movieError() {
@@ -66,8 +78,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
     }
 
     private void loadMovieById() {
-
-        System.out.println("loadMovieById");
 
         movieObserver = new DisposableObserver<MovieResult>() {
             @Override
@@ -86,10 +96,50 @@ public class MovieDetailViewModel extends AndroidViewModel {
             }
         };
 
-        repository.getMovieById(utils.isConnectedToInternet())
+        mRepository.getMovieById()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(movieObserver);
+    }
+
+
+
+    public LiveData<String> movieSearchError() {
+        return movieSearchError;
+    }
+
+    public LiveData<Boolean> movieSearchLoader() {
+        return movieSearchLoader;
+    }
+
+    public LiveData<MovieSearchResult> movieSearchByIdResult() {
+        loadMovieSearchById();
+        return movieSearchResult;
+    }
+
+    private void loadMovieSearchById() {
+
+        movieSearchObserver = new DisposableObserver<MovieSearchResult>() {
+            @Override
+            public void onComplete() {}
+
+            @Override
+            public void onNext(MovieSearchResult result) {
+                movieSearchResult.postValue(result);
+                movieSearchLoader.postValue(false);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                movieSearchError.postValue(e.getMessage());
+                movieSearchLoader.postValue(false);
+            }
+        };
+
+        mRepository.getMovieSearchById()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(movieSearchObserver);
     }
 
 
@@ -124,7 +174,7 @@ public class MovieDetailViewModel extends AndroidViewModel {
             }
         };
 
-        repository.getTrailerByMovieId(utils.isConnectedToInternet())
+        mRepository.getTrailerByMovieId()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(trailerObserver);
@@ -134,5 +184,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
     public void disposeElements() {
         if (movieObserver != null && !movieObserver.isDisposed()) movieObserver.dispose();
         if (trailerObserver != null && !trailerObserver.isDisposed()) trailerObserver.dispose();
+        if (movieSearchObserver != null && !movieSearchObserver.isDisposed()) movieSearchObserver.dispose();
     }
 }
