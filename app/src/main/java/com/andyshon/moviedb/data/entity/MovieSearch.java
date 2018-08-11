@@ -21,10 +21,20 @@ public class MovieSearch {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
+    @SerializedName("page")
+    private int page;
+
     @TypeConverters(ListTypeConverters_movie_search.class)
     @SerializedName("results")
     private List<MovieSearchResult> movies;
 
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
 
     public int getId() {
         return id;
