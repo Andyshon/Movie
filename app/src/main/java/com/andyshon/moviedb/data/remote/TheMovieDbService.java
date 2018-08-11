@@ -3,6 +3,7 @@ package com.andyshon.moviedb.data.remote;
 import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
 import com.andyshon.moviedb.data.entity.MovieSearch;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
 
 import io.reactivex.Observable;
@@ -14,7 +15,7 @@ import retrofit2.http.Query;
  * Created by andyshon on 06.08.18.
  */
 
-public interface IService {
+public interface TheMovieDbService {
 
     @GET("movie/popular")
     Observable<Movie> getPopularMovies(
@@ -25,6 +26,13 @@ public interface IService {
 
     @GET("movie/{id}")
     Observable<MovieResult> getMovieById(
+            @Path("id") int movieID,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
+    @GET("movie/{id}")
+    Observable<MovieSearchResult> getMovieSearchById(
             @Path("id") int movieID,
             @Query("api_key") String apiKey,
             @Query("language") String language

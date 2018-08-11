@@ -15,14 +15,13 @@ import android.widget.Toast;
 import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
-import com.andyshon.moviedb.data.remote.RestClient;
 import com.andyshon.moviedb.data.ui.MovieClickCallback;
 import com.andyshon.moviedb.data.ui.adapter.MovieListAdapter;
 import com.andyshon.moviedb.data.ui.viewmodel.MovieListViewModel;
 
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
 
-public class MainActivity extends AppCompatActivity implements MovieClickCallback {
+public class MovieListActivity extends AppCompatActivity implements MovieClickCallback {
 
     private MovieListViewModel viewModel;
     private MovieListAdapter mAdapter;
@@ -35,9 +34,8 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //deleteDatabase("movie-db");
+//        deleteDatabase("movie-db");
 
-        RestClient.initService();
 
         viewModel = ViewModelProviders.of(this).get(MovieListViewModel.class);
 
@@ -45,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
         progressBar = findViewById(R.id.progressbar);
         tvCurrentPage = findViewById(R.id.tvCurrentPage);
 
-        mAdapter = new MovieListAdapter(this);
+        mAdapter = new MovieListAdapter(MovieListActivity.this);
         recyclerView = findViewById(R.id.recycler);
 
         RecyclerView.LayoutManager mLayoutManager;
@@ -57,20 +55,20 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setAdapter(mAdapter);
 
-        subscribeUI();
+        subscribe();
     }
 
 
-    private void subscribeUI() {
+    private void subscribe() {
 
         viewModel.movieResult().observe(this, movie -> {
-            System.out.println("subscribeUI movieResult");
             if (movie != null) mAdapter.setMoviesList(movie.getMovies());
             tvCurrentPage.setText(String.valueOf(GlobalConstants.ApiConstants.CURRENT_PAGE));
             recyclerView.scrollToPosition(0);
         });
 
-        viewModel.movieError().observe(this, s -> Toast.makeText(MainActivity.this, "Error:" + s, Toast.LENGTH_LONG).show());
+        viewModel.movieError().observe(this, s -> Toast.makeText(MovieListActivity.this,
+                "No Internet and no cached data. Turn on the Internet.", Toast.LENGTH_LONG).show());
 
         viewModel.movieLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); });
     }
@@ -93,27 +91,19 @@ public class MainActivity extends AppCompatActivity implements MovieClickCallbac
     }
 
     public void search(View view) {
-        Intent intent = new Intent(MainActivity.this, MovieSearchActivity.class);
-        startActivityForResult(intent, 999);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            startDetailActivity();
-        }
+        Intent intent = new Intent(MovieListActivity.this, MovieSearchActivity.class);
+        startActivity(intent);
     }
 
     public void nextPage(View view) {
         CURRENT_PAGE++;
-        subscribeUI();
+        subscribe();
     }
 
     public void previousPage(View view) {
         if (CURRENT_PAGE != 1) {
             CURRENT_PAGE--;
-            subscribeUI();
+            subscribe();
         }
     }
 }

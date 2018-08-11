@@ -1,5 +1,6 @@
 package com.andyshon.moviedb.data.ui.adapter;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -12,6 +13,7 @@ import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
 import com.andyshon.moviedb.data.ui.MovieClickCallback;
+import com.andyshon.moviedb.data.ui.activity.MovieListActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -22,13 +24,17 @@ import java.util.List;
 
 public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.MovieViewHolder>{
     private List<MovieResult> movies;
+    private String image_proper_size;
 
     @Nullable
     private final MovieClickCallback mMovieClickCallback;
 
 
     public MovieListAdapter(@Nullable MovieClickCallback clickCallback) {
-        mMovieClickCallback = clickCallback;
+        this.mMovieClickCallback = clickCallback;
+        Context context = (MovieListActivity) mMovieClickCallback;
+
+        image_proper_size = GlobalConstants.getImageSize(context, false).getSize();
     }
 
 
@@ -51,14 +57,11 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         MovieResult currMovie = movies.get(position);
 
         if (currMovie.getPoster_path() != null) {
-            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(currMovie.getPoster_path());
+            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(currMovie.getPoster_path());
             Picasso.get().load(imagePath).into(holder.image);
         }
 
-        System.out.println("ID:" + currMovie.getId());
-
         holder.card.setOnClickListener(view -> {
-            System.out.println("CLICK ID:" + currMovie.getId());
             mMovieClickCallback.onClick(currMovie);
             GlobalConstants.ApiConstants.CURRENT_MOVIE_ID = currMovie.getId();
         });

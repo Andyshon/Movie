@@ -7,6 +7,8 @@ import android.arch.persistence.room.Query;
 
 import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearch;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 
 import io.reactivex.Single;
 
@@ -28,4 +30,19 @@ public interface MoviesDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertSingleMovie(MovieResult movieResult);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertMovieSearch(MovieSearch movieSearch);
+
+    @Query("DELETE FROM MovieSearch")
+    void deleteAllMovieSearch();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertSingleMovieSearch(MovieSearchResult movieSearchResult);
+
+    @Query("SELECT * FROM MovieSearch where page = :page")
+    Single<MovieSearch> queryMovieSearch(int page);
+
+    @Query("SELECT * FROM MovieSearchResult where id = :id")
+    Single<MovieSearchResult> queryMovieSearchById(int id);
 }

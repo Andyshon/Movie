@@ -1,5 +1,6 @@
 package com.andyshon.moviedb.data.ui.adapter;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -10,11 +11,9 @@ import android.widget.ImageView;
 
 import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
-import com.andyshon.moviedb.data.entity.MovieResult;
-import com.andyshon.moviedb.data.entity.MovieSearch;
 import com.andyshon.moviedb.data.entity.MovieSearchResult;
-import com.andyshon.moviedb.data.ui.MovieClickCallback;
 import com.andyshon.moviedb.data.ui.MovieSearchClickCallback;
+import com.andyshon.moviedb.data.ui.activity.MovieSearchActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -24,18 +23,22 @@ import java.util.List;
  */
 
 public class MovieSearchListAdapter extends RecyclerView.Adapter<MovieSearchListAdapter.MovieViewHolder>{
-    private MovieSearch movies;
+    private List<MovieSearchResult> movies;
+    private String image_proper_size;
 
     @Nullable
     private final MovieSearchClickCallback mMovieClickCallback;
 
 
     public MovieSearchListAdapter(@Nullable MovieSearchClickCallback clickCallback) {
-        mMovieClickCallback = clickCallback;
+        this.mMovieClickCallback = clickCallback;
+        Context context = (MovieSearchActivity) mMovieClickCallback;
+
+        image_proper_size = GlobalConstants.getImageSize(context, false).getSize();
     }
 
 
-    public void setMoviesList(final MovieSearch moviesList) {
+    public void setMoviesList(final List<MovieSearchResult> moviesList) {
         movies = moviesList;
         notifyDataSetChanged();
     }
@@ -51,17 +54,14 @@ public class MovieSearchListAdapter extends RecyclerView.Adapter<MovieSearchList
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        MovieSearchResult currMovie = movies.getMovies().get(position);
+        MovieSearchResult currMovie = movies.get(position);
 
         if (currMovie.getPoster_path() != null) {
-            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(currMovie.getPoster_path());
+            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(currMovie.getPoster_path());
             Picasso.get().load(imagePath).into(holder.image);
         }
 
-        System.out.println("ID:" + currMovie.getId());
-
         holder.card.setOnClickListener(view -> {
-            System.out.println("CLICK ID:" + currMovie.getId());
             mMovieClickCallback.onClick(currMovie);
             GlobalConstants.ApiConstants.CURRENT_MOVIE_ID = currMovie.getId();
         });
@@ -70,7 +70,7 @@ public class MovieSearchListAdapter extends RecyclerView.Adapter<MovieSearchList
 
     @Override
     public int getItemCount() {
-        return movies == null ? 0 : movies.getMovies().size();
+        return movies == null ? 0 : movies.size();
     }
 
 

@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.andyshon.moviedb.R;
 import com.andyshon.moviedb.data.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
+import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
 import com.andyshon.moviedb.data.entity.MovieTrailerResult;
 import com.andyshon.moviedb.data.ui.viewmodel.MovieDetailViewModel;
@@ -26,6 +27,7 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.player.YouTubePlayer;
 import com.pierfrancescosoffritti.androidyoutubeplayer.player.YouTubePlayerView;
 import com.pierfrancescosoffritti.androidyoutubeplayer.player.listeners.AbstractYouTubePlayerListener;
 import com.pierfrancescosoffritti.androidyoutubeplayer.player.listeners.YouTubePlayerFullScreenListener;
+import com.pierfrancescosoffritti.androidyoutubeplayer.player.listeners.YouTubePlayerListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ import java.util.List;
 
 import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.TRAILER_START_SECONDS;
 
-public class MovieDetailActivity extends AppCompatActivity implements YouTubeListener.ListenerCallback {
+public class MovieDetailActivity extends AppCompatActivity implements YouTubeListenerImpl.ListenerCallback {
 
     private MovieDetailViewModel viewModel;
     private CollapsingToolbarLayout collapsingToolbarLayout;
@@ -45,6 +47,7 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
 
     private List<YouTubePlayerView> youTubePlayerViewList;
     private YouTubePlayer youTubePlayer;
+    private YouTubePlayerListener mYoutubeListener;
 
 
     @Override
@@ -56,7 +59,7 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
         collapsingToolbarLayout.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
 
         swipeRefreshLayout = findViewById(R.id.swipeRefresh);
-        swipeRefreshLayout.setOnRefreshListener(this::subscribeUI);
+        swipeRefreshLayout.setOnRefreshListener(this::subscribe);
 
 
         tvTitle = findViewById(R.id.tvTitle);
@@ -78,11 +81,12 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         viewModel = ViewModelProviders.of(this).get(MovieDetailViewModel.class);
 
-        subscribeUI();
+        subscribe();
     }
 
     @Override
@@ -94,34 +98,61 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
         return super.onOptionsItemSelected(item);
     }
 
-    private void subscribeUI() {
+    private void subscribe() {
 
-        viewModel.movieByIdResult().observe(this, this::updateUI);
-        viewModel.movieError().observe(this, s -> Toast.makeText(MovieDetailActivity.this, "Error111:" + s, Toast.LENGTH_LONG).show());
+        viewModel.movieByIdResult().observe(this, this::updateUIPopular);
         viewModel.movieLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
+        viewModel.movieError().observe(this, error -> {
+            // нет такого фильма в популярных. пробуем найти его в movie search result
+            viewModel.movieSearchByIdResult().observe(this, this::updateUISearch);
+            viewModel.movieSearchError().observe(this, error1 -> Toast.makeText(MovieDetailActivity.this, "Error:" + error1, Toast.LENGTH_SHORT).show());
+            viewModel.movieSearchLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
+        });
+
 
         viewModel.trailerResult().observe(this, this::updateTrailersUI);
-        viewModel.trailerError().observe(this, s -> tvNoTrailers.setVisibility(View.VISIBLE));
         viewModel.trailerLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
+        viewModel.trailerError().observe(this, s -> tvNoTrailers.setVisibility(View.VISIBLE));
     }
 
-    private void updateUI(MovieResult movie) {
-        System.out.println("updateUI");
-        collapsingToolbarLayout.setTitle(movie.getTitle());
-        tvTitle.setText(movie.getTitle());
-        tvSubTitle.setText("Описание: ".concat(movie.getOverview()));
-        tv1.setText("Рейтинг: ".concat(String.valueOf(movie.getVote_count())));
-        tv2.setText("Популярность: ".concat(String.valueOf(movie.getPopularity())));
-        tv3.setText("Дата выхода: ".concat(movie.getRelease_date()));
-        tv4.setText("Средняя оценка: ".concat(String.valueOf(movie.getVote_average())));
-        if (movie.getBackdrop_path() != null) {
-            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH_W500.concat(movie.getBackdrop_path());
+
+    private void updateUIPopular(MovieResult movieResult) {
+
+        collapsingToolbarLayout.setTitle(movieResult.getTitle());
+        tvTitle.setText(movieResult.getTitle());
+        tvSubTitle.setText("Описание: ".concat(movieResult.getOverview()));
+        tv1.setText("Рейтинг: ".concat(String.valueOf(movieResult.getVote_count())));
+        tv2.setText("Популярность: ".concat(String.valueOf(movieResult.getPopularity())));
+        tv3.setText("Дата выхода: ".concat(movieResult.getRelease_date().substring(0,4)));
+        tv4.setText("Средняя оценка: ".concat(String.valueOf(movieResult.getVote_average())));
+
+        if (movieResult.getBackdrop_path() != null) {
+            String image_proper_size = GlobalConstants.getImageSize(this, true).getSize();
+            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(movieResult.getBackdrop_path());
             Picasso.get().load(imagePath).placeholder(R.drawable.ic_launcher_foreground).error(R.drawable.ic_launcher_foreground).into(ivImage);
         }
     }
 
+
+    private void updateUISearch(MovieSearchResult movieSearchResult) {
+
+        collapsingToolbarLayout.setTitle(movieSearchResult.getTitle());
+        tvTitle.setText(movieSearchResult.getTitle());
+        tvSubTitle.setText("Описание: ".concat(movieSearchResult.getOverview()));
+        tv1.setText("Рейтинг: ".concat(String.valueOf(movieSearchResult.getVote_count())));
+        tv2.setText("Популярность: ".concat(String.valueOf(movieSearchResult.getPopularity())));
+        tv3.setText("Дата выхода: ".concat(movieSearchResult.getRelease_date().substring(0,4)));
+        tv4.setText("Средняя оценка: ".concat(String.valueOf(movieSearchResult.getVote_average())));
+
+        if (movieSearchResult.getBackdrop_path() != null) {
+            String image_proper_size = GlobalConstants.getImageSize(this, true).getSize();
+            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(movieSearchResult.getBackdrop_path());
+            Picasso.get().load(imagePath).placeholder(R.drawable.ic_launcher_foreground).error(R.drawable.ic_launcher_foreground).into(ivImage);
+        }
+    }
+
+
     private void updateTrailersUI(MovieTrailer movieTrailer) {
-        System.out.println("updateTrailersUI");
         trailersLayout.removeAllViews();
         youTubePlayerViewList.clear();
 
@@ -135,7 +166,7 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
                 @Override
                 public void onYouTubePlayerEnterFullScreen() {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v="
-                            .concat(trailer.getKey()).concat("&t=").concat(String.valueOf(trailer.getKey()).concat("s"))));
+                            .concat(trailer.getKey()).concat("&t=").concat(String.valueOf(getStartSeconds(trailer)).concat("s"))));
                     intent.putExtra("force_fullscreen", true);
                     startActivityForResult(intent, 222);
                 }
@@ -155,40 +186,46 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
     }
 
 
-
     private void initYouTubePlayerView(YouTubePlayerView youTubePlayerView, MovieTrailerResult trailer) {
         youTubePlayerView.initialize(
                 initializedYouTubePlayer -> {
                     youTubePlayer = initializedYouTubePlayer;
-                    YouTubeListener mListener = new YouTubeListener(this, trailer);
-                    youTubePlayer.addListener(mListener.getYouTubePlayerListener());
-
+                    mYoutubeListener = new YouTubeListenerImpl(this, trailer);
+                    youTubePlayer.addListener(mYoutubeListener);
 
                     initializedYouTubePlayer.addListener(new AbstractYouTubePlayerListener() {
                         @Override
                         public void onReady() {
-                            float startSeconds = 0f;
-                            if (TRAILER_START_SECONDS.containsKey(trailer.getKey())) {
-                                startSeconds = TRAILER_START_SECONDS.get(trailer.getKey());
-                            }
-                            initializedYouTubePlayer.cueVideo(trailer.getKey(), startSeconds);
+                            initializedYouTubePlayer.cueVideo(trailer.getKey(), getStartSeconds(trailer));
                         }
                     });
                 }, true);
     }
 
+
+    public float getStartSeconds(MovieTrailerResult trailer) {
+        float startSeconds = 0f;
+        if (TRAILER_START_SECONDS.containsKey(trailer.getKey()))
+            startSeconds = TRAILER_START_SECONDS.get(trailer.getKey());
+        return startSeconds;
+    }
+
+
+    @Override
+    public void getCurrentSecond(MovieTrailerResult trailer, float startSeconds) {
+        TRAILER_START_SECONDS.put(trailer.getKey(), startSeconds);
+    }
+
+
     @Override
     protected void onDestroy() {
+        if (youTubePlayer != null)
+            youTubePlayer.removeListener(mYoutubeListener);
         viewModel.disposeElements();
         super.onDestroy();
         for (YouTubePlayerView playerView : youTubePlayerViewList) {
             playerView.release();
         }
         youTubePlayerViewList.clear();
-    }
-
-    @Override
-    public void getCurrentSecond(MovieTrailerResult trailer, float startSeconds) {
-        TRAILER_START_SECONDS.put(trailer.getKey(), startSeconds);
     }
 }
