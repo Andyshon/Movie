@@ -10,8 +10,6 @@ import com.andyshon.moviedb.data.BasicApp;
 import com.andyshon.moviedb.data.MovieRepository;
 import com.andyshon.moviedb.data.entity.Movie;
 
-import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -77,7 +75,6 @@ public class MovieListViewModel extends AndroidViewModel {
         mRepository.getPopularMovies()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .debounce(400, TimeUnit.MILLISECONDS)
                 .subscribe(popularMoviesObserver);
     }
 

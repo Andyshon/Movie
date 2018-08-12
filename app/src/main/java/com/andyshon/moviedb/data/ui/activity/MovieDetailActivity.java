@@ -141,7 +141,12 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
         tvSubTitle.setText("Описание: ".concat(movieSearchResult.getOverview()));
         tv1.setText("Рейтинг: ".concat(String.valueOf(movieSearchResult.getVote_count())));
         tv2.setText("Популярность: ".concat(String.valueOf(movieSearchResult.getPopularity())));
-        tv3.setText("Дата выхода: ".concat(movieSearchResult.getRelease_date().substring(0,4)));
+        if (movieSearchResult.getRelease_date().length() >= 4) {
+            tv3.setText("Дата выхода: ".concat(movieSearchResult.getRelease_date().substring(0, 4)));
+        }
+        else {
+            tv3.setText("Дата выхода: ".concat(movieSearchResult.getRelease_date()));
+        }
         tv4.setText("Средняя оценка: ".concat(String.valueOf(movieSearchResult.getVote_average())));
 
         if (movieSearchResult.getBackdrop_path() != null) {

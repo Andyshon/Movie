@@ -24,7 +24,7 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:text="MovieDb"
+            android:text="@string/moviedb"
             android:textColor="#fff"
             android:textSize="20sp"
             tools:layout_editor_absoluteX="16dp"
@@ -41,44 +41,6 @@
             android:textColor="#fff" />
 
     </android.support.v7.widget.Toolbar>
-
-
-    <Button
-        android:id="@+id/btnPrevious"
-        style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_marginStart="8dp"
-        android:layout_weight="1"
-        android:onClick="previousPage"
-        android:text="@string/previous"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvCurrentPage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:text="@string/_1"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnNext"
-        app:layout_constraintHorizontal_bias="0.43"
-        app:layout_constraintStart_toEndOf="@+id/btnPrevious" />
-
-    <Button
-        android:id="@+id/btnNext"
-        style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_marginEnd="8dp"
-        android:onClick="nextPage"
-        android:text="@string/next"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <ProgressBar
         android:id="@+id/progressbar"
@@ -101,7 +63,7 @@
         android:layout_gravity="center_horizontal"
         android:background="#FFF"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toTopOf="@+id/btnNext"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"

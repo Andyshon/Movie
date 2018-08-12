@@ -16,73 +16,173 @@ import com.andyshon.moviedb.data.ui.MovieClickCallback;
 import com.andyshon.moviedb.data.ui.activity.MovieListActivity;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.annotations.NonNull;
 
 /**
  * Created by andyshon on 06.08.18.
  */
 
-public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.MovieViewHolder>{
-    private List<MovieResult> movies;
-    private String image_proper_size;
+public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
 
     @Nullable
     private final MovieClickCallback mMovieClickCallback;
 
+    private String image_proper_size;
+
+    private static final int ITEM = 0;
+    private static final int LOADING = 1;
+
+    private List<MovieResult> movieResults;
+
+    private boolean isLoadingAdded = false;
 
     public MovieListAdapter(@Nullable MovieClickCallback clickCallback) {
         this.mMovieClickCallback = clickCallback;
         Context context = (MovieListActivity) mMovieClickCallback;
+        movieResults = new ArrayList<>();
 
         image_proper_size = GlobalConstants.getImageSize(context, false).getSize();
     }
 
 
-    public void setMoviesList(final List<MovieResult> moviesList) {
-        movies = moviesList;
-        notifyDataSetChanged();
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RecyclerView.ViewHolder viewHolder = null;
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+        switch (viewType) {
+            case ITEM:
+                viewHolder = getViewHolder(parent, inflater);
+                break;
+            case LOADING:
+                View v2 = inflater.inflate(R.layout.item_progress, parent, false);
+                viewHolder = new LoadingVH(v2);
+                break;
+        }
+        return viewHolder;
     }
 
-
-    @Override
-    public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_movie, parent, false);
-
-        return new MovieViewHolder(itemView);
+    @NonNull
+    private RecyclerView.ViewHolder getViewHolder(ViewGroup parent, LayoutInflater inflater) {
+        RecyclerView.ViewHolder viewHolder;
+        View v1 = inflater.inflate(R.layout.item_movie, parent, false);
+        viewHolder = new MovieVH(v1);
+        return viewHolder;
     }
 
-
     @Override
-    public void onBindViewHolder(MovieViewHolder holder, int position) {
-        MovieResult currMovie = movies.get(position);
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
-        if (currMovie.getPoster_path() != null) {
-            String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(currMovie.getPoster_path());
-            Picasso.get().load(imagePath).into(holder.image);
+        MovieResult movie = movieResults.get(position);
+
+        switch (getItemViewType(position)) {
+            case ITEM:
+                final MovieVH movieVH = (MovieVH) holder;
+
+                if (movie.getPoster_path() != null) {
+                    String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(movie.getPoster_path());
+                    Picasso.get().load(imagePath).into(movieVH.image);
+                }
+
+                movieVH.card.setOnClickListener(view -> {
+                    mMovieClickCallback.onClick(movie);
+                    GlobalConstants.ApiConstants.CURRENT_MOVIE_ID = movie.getId();
+                });
+
+                break;
+
+            case LOADING:
+//                Do nothing
+                break;
         }
 
-        holder.card.setOnClickListener(view -> {
-            mMovieClickCallback.onClick(currMovie);
-            GlobalConstants.ApiConstants.CURRENT_MOVIE_ID = currMovie.getId();
-        });
     }
-
 
     @Override
     public int getItemCount() {
-        return movies == null ? 0 : movies.size();
+        return movieResults == null ? 0 : movieResults.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return (position == movieResults.size() - 1 && isLoadingAdded) ? LOADING : ITEM;
     }
 
 
-    static class MovieViewHolder extends RecyclerView.ViewHolder {
 
+    public void add(MovieResult result) {
+        movieResults.add(result);
+        notifyItemInserted(movieResults.size() - 1);
+    }
+
+    public void addAll(List<MovieResult> moveResults) {
+        for (MovieResult result : moveResults) {
+            add(result);
+        }
+    }
+
+    public void remove(MovieResult result) {
+        int position = movieResults.indexOf(result);
+        if (position > -1) {
+            movieResults.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public void clear() {
+        isLoadingAdded = false;
+        while (getItemCount() > 0) {
+            remove(getItem(0));
+        }
+    }
+
+    public boolean isEmpty() {
+        return getItemCount() == 0;
+    }
+
+
+    public void addLoadingFooter() {
+        isLoadingAdded = true;
+        add(new MovieResult());
+    }
+
+    public void removeLoadingFooter() {
+        isLoadingAdded = false;
+
+        int position = movieResults.size() - 1;
+        MovieResult result = getItem(position);
+
+        if (result != null) {
+            movieResults.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public MovieResult getItem(int position) {
+        return movieResults.get(position);
+    }
+
+
+
+    protected class MovieVH extends RecyclerView.ViewHolder {
         final ImageView image;
         final CardView card;
 
-        MovieViewHolder(View view) {
+        MovieVH(View view) {
             super(view);
             image = view.findViewById(R.id.image);
             card = view.findViewById(R.id.movie_item);
+        }
+    }
+
+
+    protected class LoadingVH extends RecyclerView.ViewHolder {
+        public LoadingVH(View itemView) {
+            super(itemView);
         }
     }
 }

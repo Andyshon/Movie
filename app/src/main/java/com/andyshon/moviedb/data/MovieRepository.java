@@ -140,9 +140,8 @@ public class MovieRepository {
      * @param query String movie title
      */
     private Observable<MovieSearch> getSearchMoviesFromApi(String query) {
-        return theMovieDbService.getSearchMovies(API_KEY, String.valueOf(R.string.language), query, 1, false)
+        return theMovieDbService.getSearchMovies(API_KEY, String.valueOf(R.string.language), query, CURRENT_PAGE, false)
                 .doOnNext(movie -> {
-                    moviesDao.deleteAllMovieSearch();
                     for (MovieSearchResult movieResult : movie.getMovies()) {
                         moviesDao.insertSingleMovieSearch(movieResult);
                     }
@@ -155,7 +154,7 @@ public class MovieRepository {
      * @param query String movie title. Not used. Find movies in first page.
      */
     private Observable<MovieSearch> getSearchMoviesFromDb(String query) {
-        return moviesDao.queryMovieSearch(/*query*/1).toObservable();
+        return moviesDao.queryMovieSearch(CURRENT_PAGE).toObservable();
     }
 
 

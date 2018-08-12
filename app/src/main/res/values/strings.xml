@@ -16,4 +16,5 @@
     <string name="vote_average">Средняя оценка</string>
 
     <string name="language">ru-RU</string>
+    <string name="moviedb">MovieDb</string>
 </resources>
