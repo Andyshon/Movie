@@ -24,6 +24,9 @@ public class MovieSearch {
     @SerializedName("page")
     private int page;
 
+    @SerializedName("total_results")
+    private int total_results;
+
     @TypeConverters(ListTypeConverters_movie_search.class)
     @SerializedName("results")
     private List<MovieSearchResult> movies;
@@ -34,6 +37,14 @@ public class MovieSearch {
 
     public void setPage(int page) {
         this.page = page;
+    }
+
+    public int getTotal_results() {
+        return total_results;
+    }
+
+    public void setTotal_results(int total_results) {
+        this.total_results = total_results;
     }
 
     public int getId() {
