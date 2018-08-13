@@ -15,7 +15,7 @@ import retrofit2.http.Query;
  * Created by andyshon on 06.08.18.
  */
 
-public interface TheMovieDbService {
+public interface MoviesService {
 
     @GET("movie/popular")
     Observable<Movie> getPopularMovies(

@@ -3,19 +3,20 @@ package com.andyshon.moviedb.data;
 import android.content.Context;
 
 import com.andyshon.moviedb.R;
+import com.andyshon.moviedb.Utils;
 import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
 import com.andyshon.moviedb.data.entity.MovieSearch;
 import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
 import com.andyshon.moviedb.data.local.MoviesDao;
-import com.andyshon.moviedb.data.remote.TheMovieDbService;
+import com.andyshon.moviedb.data.remote.MoviesService;
 
 import javax.inject.Inject;
 
 import io.reactivex.Observable;
 
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
+import static com.andyshon.moviedb.GlobalConstants.ApiConstants.*;
 
 /**
  * Created by andyshon on 06.08.18.
@@ -24,14 +25,14 @@ import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
 public class MovieRepository {
 
     private MoviesDao moviesDao;
-    private TheMovieDbService theMovieDbService;
+    private MoviesService moviesService;
 
     private Context context;
 
     @Inject
-    public MovieRepository (MoviesDao moviesDao, TheMovieDbService theMovieDbService, Context context) {
+    public MovieRepository (MoviesDao moviesDao, MoviesService moviesService, Context context) {
         this.moviesDao = moviesDao;
-        this.theMovieDbService = theMovieDbService;
+        this.moviesService = moviesService;
         this.context = context;
     }
 
@@ -55,7 +56,7 @@ public class MovieRepository {
      * Returns popular movies from server API
      */
     private Observable<Movie> getPopularMoviesFromApi() {
-        return theMovieDbService.getPopularMovies(API_KEY, String.valueOf(R.string.language), CURRENT_PAGE)
+        return moviesService.getPopularMovies(API_KEY, String.valueOf(R.string.language), CURRENT_PAGE)
                 .doOnNext(movie -> {
                     for (MovieResult movieResult : movie.getMovies())
                         moviesDao.insertSingleMovie(movieResult);
@@ -90,7 +91,7 @@ public class MovieRepository {
      * Returns movie by id from server API
      */
     private Observable<MovieResult> getMovieByIdFromApi() {
-        return theMovieDbService.getMovieById(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
+        return moviesService.getMovieById(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
     }
 
     /**
@@ -114,7 +115,7 @@ public class MovieRepository {
      * Returns trailer by movie id from server API
      */
     private Observable<MovieTrailer> getTrailerByMovieIdFromApi() {
-        return theMovieDbService.getTrailersByMovieId(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
+        return moviesService.getTrailersByMovieId(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
     }
 
 
@@ -128,7 +129,7 @@ public class MovieRepository {
         Observable<MovieSearch> observableFromApi = null, observableFromDb = null;
         if (Utils.hasInternet(context))
             observableFromApi = getSearchMoviesFromApi(query);
-        observableFromDb = getSearchMoviesFromDb(query);
+        observableFromDb = getSearchMoviesFromDb();
 
         if (Utils.hasInternet(context))
             return Observable.concatArrayEager(observableFromApi, observableFromDb);
@@ -140,8 +141,9 @@ public class MovieRepository {
      * @param query String movie title
      */
     private Observable<MovieSearch> getSearchMoviesFromApi(String query) {
-        return theMovieDbService.getSearchMovies(API_KEY, String.valueOf(R.string.language), query, CURRENT_PAGE, false)
+        return moviesService.getSearchMovies(API_KEY, String.valueOf(R.string.language), query, CURRENT_PAGE, false)
                 .doOnNext(movie -> {
+                    moviesDao.deleteAllMovieSearch();
                     for (MovieSearchResult movieResult : movie.getMovies()) {
                         moviesDao.insertSingleMovieSearch(movieResult);
                     }
@@ -151,9 +153,8 @@ public class MovieRepository {
 
     /**
      * Returns search movie from Room
-     * @param query String movie title. Not used. Find movies in first page.
      */
-    private Observable<MovieSearch> getSearchMoviesFromDb(String query) {
+    private Observable<MovieSearch> getSearchMoviesFromDb() {
         return moviesDao.queryMovieSearch(CURRENT_PAGE).toObservable();
     }
 
@@ -177,7 +178,7 @@ public class MovieRepository {
      * Returns search movie by id from server API, also insert found movie to Room
      */
     private Observable<MovieSearchResult> getMovieSearchByIdFromApi() {
-        return theMovieDbService.getMovieSearchById(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
+        return moviesService.getMovieSearchById(CURRENT_MOVIE_ID, API_KEY, String.valueOf(R.string.language));
     }
 
     /**

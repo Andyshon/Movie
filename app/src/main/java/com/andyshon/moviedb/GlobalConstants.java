@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data;
+package com.andyshon.moviedb;
 
 import android.content.Context;
 import android.content.res.Configuration;

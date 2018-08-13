@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui;
+package com.andyshon.moviedb.ui;
 
 import com.andyshon.moviedb.data.entity.MovieSearchResult;
 

@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui.activity;
+package com.andyshon.moviedb.ui.activity;
 
 import android.support.annotation.NonNull;
 

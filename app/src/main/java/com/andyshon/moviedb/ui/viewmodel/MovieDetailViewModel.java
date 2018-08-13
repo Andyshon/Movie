@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui.viewmodel;
+package com.andyshon.moviedb.ui.viewmodel;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
@@ -58,7 +58,6 @@ public class MovieDetailViewModel extends AndroidViewModel {
         trailerLoader = new MutableLiveData<>();
         trailerResult = new MutableLiveData<>();
         loadTrailers();
-
 
         movieSearchError = new MutableLiveData<>();
         movieSearchLoader = new MutableLiveData<>();

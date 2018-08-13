@@ -1,11 +1,13 @@
-package com.andyshon.moviedb.data.ui.activity;
+package com.andyshon.moviedb.ui.activity;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -16,16 +18,17 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.andyshon.moviedb.R;
-import com.andyshon.moviedb.data.UserPreferences;
-import com.andyshon.moviedb.data.Utils;
+import com.andyshon.moviedb.UserPreferences;
+import com.andyshon.moviedb.Utils;
+import com.andyshon.moviedb.data.entity.MovieSearch;
 import com.andyshon.moviedb.data.entity.MovieSearchResult;
-import com.andyshon.moviedb.data.ui.MovieSearchClickCallback;
-import com.andyshon.moviedb.data.ui.adapter.MovieSearchListAdapter;
-import com.andyshon.moviedb.data.ui.viewmodel.MovieSearchViewModel;
+import com.andyshon.moviedb.ui.MovieSearchClickCallback;
+import com.andyshon.moviedb.ui.adapter.MovieSearchListAdapter;
+import com.andyshon.moviedb.ui.viewmodel.MovieSearchViewModel;
 
 import io.reactivex.subjects.PublishSubject;
 
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
+import static com.andyshon.moviedb.GlobalConstants.ApiConstants.*;
 
 public class MovieSearchActivity extends AppCompatActivity implements MovieSearchClickCallback {
 
@@ -42,11 +45,17 @@ public class MovieSearchActivity extends AppCompatActivity implements MovieSearc
 
     private Context context;
 
+    private LiveData<MovieSearch> movieSearchResult;
+    private LiveData<String> movieSearchError;
+    private LiveData<Boolean> movieSearchLoader;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_search);
+
+        CURRENT_PAGE = 1;
 
         context = MovieSearchActivity.this;
 
@@ -55,6 +64,7 @@ public class MovieSearchActivity extends AppCompatActivity implements MovieSearc
         progressBar = findViewById(R.id.progressbar);
 
         mAdapter = new MovieSearchListAdapter(this);
+
         RecyclerView recyclerView = findViewById(R.id.recycler);
 
         RecyclerView.LayoutManager mLayoutManager;
@@ -64,6 +74,7 @@ public class MovieSearchActivity extends AppCompatActivity implements MovieSearc
         else mLayoutManager = new GridLayoutManager(this, 2);
 
         recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -78,22 +89,34 @@ public class MovieSearchActivity extends AppCompatActivity implements MovieSearc
 
         viewModel = ViewModelProviders.of(this).get(MovieSearchViewModel.class);
 
-        viewModel.movieResult(subject).observe(this, movieSearch -> {
+        subscribe();
+
+        setObservers();
+    }
+
+
+    private void setObservers() {
+        movieSearchResult.observe(this, movieSearch -> {
+
             if (Utils.hasInternet(context))
-                Toast.makeText(MovieSearchActivity.this, "Найдено " + movieSearch.getMovies().size() + " фильмов!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MovieSearchActivity.this, "Найдено " + movieSearch.getTotal_results() + " фильмов!", Toast.LENGTH_SHORT).show();
             else
                 Toast.makeText(MovieSearchActivity.this, "Нет интернета. Показаны фильмы с последнего поиска:" + last_query, Toast.LENGTH_LONG).show();
 
-            if (movieSearch != null)
-                mAdapter.setMoviesList(movieSearch.getMovies());
+            mAdapter.setMoviesList(movieSearch.getMovies());
         });
 
-        viewModel.movieError().observe(this, s -> Toast.makeText(MovieSearchActivity.this,
-                "No Internet and no cached data. Turn on the Internet.", Toast.LENGTH_LONG).show());
+        movieSearchError.observe(this, s -> Toast.makeText(MovieSearchActivity.this,
+                "Check Internet connection, no cached data.", Toast.LENGTH_LONG).show());
 
-        viewModel.movieLoader().observe(this, aBoolean -> {
-            if (!aBoolean) progressBar.setVisibility(View.GONE);
-        });
+        movieSearchLoader.observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); });
+    }
+
+
+    private void subscribe() {
+        movieSearchResult = viewModel.movieResult(subject);
+        movieSearchError = viewModel.movieError();
+        movieSearchLoader = viewModel.movieLoader();
     }
 
 

@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui.activity;
+package com.andyshon.moviedb.ui.activity;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModelProviders;
@@ -11,25 +11,22 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.andyshon.moviedb.R;
-import com.andyshon.moviedb.data.GlobalConstants;
 import com.andyshon.moviedb.data.entity.Movie;
 import com.andyshon.moviedb.data.entity.MovieResult;
-import com.andyshon.moviedb.data.ui.MovieClickCallback;
-import com.andyshon.moviedb.data.ui.adapter.MovieListAdapter;
-import com.andyshon.moviedb.data.ui.viewmodel.MovieListViewModel;
+import com.andyshon.moviedb.ui.MovieClickCallback;
+import com.andyshon.moviedb.ui.adapter.MovieListAdapter;
+import com.andyshon.moviedb.ui.viewmodel.MovieListViewModel;
 
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.*;
+import static com.andyshon.moviedb.GlobalConstants.ApiConstants.*;
 
 public class MovieListActivity extends AppCompatActivity implements MovieClickCallback {
 
     private MovieListViewModel viewModel;
     private MovieListAdapter mAdapter;
     private ProgressBar progressBar;
-    private TextView tvCurrentPage;
 
     private LiveData<Movie> movieResult;
     private LiveData<String> movieError;
@@ -37,7 +34,7 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
 
     private boolean isLoading = false;
     private boolean isLastPage = false;
-    private int TOTAL_PAGES = 10;
+    private int TOTAL_PAGES = 10; // 10*20 films are fine
     private boolean isFirstPage = true;
 
 
@@ -48,18 +45,12 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
 
         CURRENT_PAGE = 1;
 
-//        deleteDatabase("movie-db");
-
         viewModel = ViewModelProviders.of(this).get(MovieListViewModel.class);
 
-
         progressBar = findViewById(R.id.progressbar);
-        tvCurrentPage = findViewById(R.id.tvCurrentPage);
-
         mAdapter = new MovieListAdapter(this);
 
         RecyclerView recyclerView = findViewById(R.id.recycler);
-
         RecyclerView.LayoutManager mLayoutManager;
 
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
@@ -67,11 +58,17 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
         else mLayoutManager = new GridLayoutManager(this, 2);
 
         recyclerView.setLayoutManager(mLayoutManager);
-
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-
         recyclerView.setAdapter(mAdapter);
 
+        setScrollListener(recyclerView);
+
+        subscribe();
+
+        setObservers();
+    }
+
+    private void setScrollListener(RecyclerView recyclerView) {
         recyclerView.addOnScrollListener(new PagingScrollListener() {
             @Override
             protected void loadMoreItems() {
@@ -97,9 +94,9 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
                 return isLoading;
             }
         });
+    }
 
-        subscribe();
-
+    private void setObservers() {
         movieResult.observe(this, movie -> {
 
             if (!isFirstPage) {
@@ -110,8 +107,6 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
 
                 if (CURRENT_PAGE != TOTAL_PAGES) mAdapter.addLoadingFooter();
                 else showLastPageLimit();
-
-                tvCurrentPage.setText(String.valueOf(GlobalConstants.ApiConstants.CURRENT_PAGE));
             }
             else {
                 CURRENT_PAGE = 1;
@@ -124,7 +119,8 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
             }
         });
 
-        movieError.observe(this, s -> Toast.makeText(MovieListActivity.this, "Error:" + s, Toast.LENGTH_LONG).show());
+        movieError.observe(this, s -> Toast.makeText(MovieListActivity.this,
+                "Check Internet connection, no cached data.", Toast.LENGTH_LONG).show());
 
         movieLoader.observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); });
     }
@@ -163,21 +159,6 @@ public class MovieListActivity extends AppCompatActivity implements MovieClickCa
 
 
     public void search(View view) {
-        Intent intent = new Intent(MovieListActivity.this, MovieSearchActivity.class);
-        startActivity(intent);
-    }
-
-
-    public void nextPage(View view) {
-        CURRENT_PAGE++;
-        subscribe();
-    }
-
-
-    public void previousPage(View view) {
-        if (CURRENT_PAGE != 1) {
-            CURRENT_PAGE--;
-            subscribe();
-        }
+        startActivity(new Intent(MovieListActivity.this, MovieSearchActivity.class));
     }
 }

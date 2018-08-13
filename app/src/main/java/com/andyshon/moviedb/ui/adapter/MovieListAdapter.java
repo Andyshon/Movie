@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui.adapter;
+package com.andyshon.moviedb.ui.adapter;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
@@ -10,10 +10,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.andyshon.moviedb.R;
-import com.andyshon.moviedb.data.GlobalConstants;
+import com.andyshon.moviedb.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
-import com.andyshon.moviedb.data.ui.MovieClickCallback;
-import com.andyshon.moviedb.data.ui.activity.MovieListActivity;
+import com.andyshon.moviedb.ui.MovieClickCallback;
+import com.andyshon.moviedb.ui.activity.MovieListActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -75,20 +75,20 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder h, int position) {
 
         MovieResult movie = movieResults.get(position);
 
         switch (getItemViewType(position)) {
             case ITEM:
-                final MovieVH movieVH = (MovieVH) holder;
+                final MovieVH holder = (MovieVH) h;
 
                 if (movie.getPoster_path() != null) {
                     String imagePath = GlobalConstants.ApiConstants.IMAGE_PATH.concat(image_proper_size).concat("/").concat(movie.getPoster_path());
-                    Picasso.get().load(imagePath).into(movieVH.image);
+                    Picasso.get().load(imagePath).placeholder(R.drawable.ic_launcher_foreground).error(R.drawable.ic_launcher_foreground).into(holder.image);
                 }
 
-                movieVH.card.setOnClickListener(view -> {
+                holder.card.setOnClickListener(view -> {
                     mMovieClickCallback.onClick(movie);
                     GlobalConstants.ApiConstants.CURRENT_MOVIE_ID = movie.getId();
                 });

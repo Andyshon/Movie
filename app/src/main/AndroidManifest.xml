@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppThemeNoActionBar">
-        <activity android:name=".data.ui.activity.MovieListActivity"
+        <activity android:name=".ui.activity.MovieListActivity"
 
             android:theme="@style/AppThemeNoActionBar">
             <intent-filter>
@@ -24,10 +24,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".data.ui.activity.MovieDetailActivity"
+            android:name=".ui.activity.MovieDetailActivity"
             android:theme="@style/AppThemeTransparentStatusBar" />
         <activity
-            android:name=".data.ui.activity.MovieSearchActivity"
+            android:name=".ui.activity.MovieSearchActivity"
             android:theme="@style/AppThemeNoActionBar"/>
     </application>
 

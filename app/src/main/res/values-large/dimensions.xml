@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="toolbarTitle">25sp</dimen>
+    <dimen name="toolbarSearch">20sp</dimen>
+    <dimen name="movieTitle">25sp</dimen>
+    <dimen name="movieText">19sp</dimen>
+</resources>

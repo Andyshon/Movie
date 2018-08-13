@@ -2,8 +2,8 @@ package com.andyshon.moviedb.data.di;
 
 import android.content.Context;
 
-import com.andyshon.moviedb.data.GlobalConstants;
-import com.andyshon.moviedb.data.remote.TheMovieDbService;
+import com.andyshon.moviedb.GlobalConstants;
+import com.andyshon.moviedb.data.remote.MoviesService;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import javax.inject.Singleton;
@@ -34,8 +34,8 @@ public class ActivityModule {
 
     @Provides
     @Singleton
-    TheMovieDbService provideItemService(Retrofit retrofit) {
-        return retrofit.create(TheMovieDbService.class);
+    MoviesService provideItemService(Retrofit retrofit) {
+        return retrofit.create(MoviesService.class);
     }
 
     @Provides

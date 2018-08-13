@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui.activity;
+package com.andyshon.moviedb.ui.activity;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -17,12 +17,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.andyshon.moviedb.R;
-import com.andyshon.moviedb.data.GlobalConstants;
+import com.andyshon.moviedb.GlobalConstants;
 import com.andyshon.moviedb.data.entity.MovieResult;
 import com.andyshon.moviedb.data.entity.MovieSearchResult;
 import com.andyshon.moviedb.data.entity.MovieTrailer;
 import com.andyshon.moviedb.data.entity.MovieTrailerResult;
-import com.andyshon.moviedb.data.ui.viewmodel.MovieDetailViewModel;
+import com.andyshon.moviedb.ui.viewmodel.MovieDetailViewModel;
 import com.pierfrancescosoffritti.androidyoutubeplayer.player.YouTubePlayer;
 import com.pierfrancescosoffritti.androidyoutubeplayer.player.YouTubePlayerView;
 import com.pierfrancescosoffritti.androidyoutubeplayer.player.listeners.AbstractYouTubePlayerListener;
@@ -33,7 +33,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.andyshon.moviedb.data.GlobalConstants.ApiConstants.TRAILER_START_SECONDS;
+import static com.andyshon.moviedb.GlobalConstants.ApiConstants.TRAILER_START_SECONDS;
 
 public class MovieDetailActivity extends AppCompatActivity implements YouTubeListenerImpl.ListenerCallback {
 
@@ -103,16 +103,21 @@ public class MovieDetailActivity extends AppCompatActivity implements YouTubeLis
         viewModel.movieByIdResult().observe(this, this::updateUIPopular);
         viewModel.movieLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
         viewModel.movieError().observe(this, error -> {
-            // нет такого фильма в популярных. пробуем найти его в movie search result
-            viewModel.movieSearchByIdResult().observe(this, this::updateUISearch);
-            viewModel.movieSearchError().observe(this, error1 -> Toast.makeText(MovieDetailActivity.this, "Error:" + error1, Toast.LENGTH_SHORT).show());
-            viewModel.movieSearchLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
+            // нет такого фильма в популярных. ищем его в movie search result
+            subscribeMovieSearch();
         });
 
 
         viewModel.trailerResult().observe(this, this::updateTrailersUI);
         viewModel.trailerLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
         viewModel.trailerError().observe(this, s -> tvNoTrailers.setVisibility(View.VISIBLE));
+    }
+
+
+    private void subscribeMovieSearch() {
+        viewModel.movieSearchByIdResult().observe(this, this::updateUISearch);
+        viewModel.movieSearchError().observe(this, error1 -> Toast.makeText(MovieDetailActivity.this, "Error:" + error1, Toast.LENGTH_SHORT).show());
+        viewModel.movieSearchLoader().observe(this, aBoolean -> { if (!aBoolean) progressBar.setVisibility(View.GONE); swipeRefreshLayout.setRefreshing(false); });
     }
 
 

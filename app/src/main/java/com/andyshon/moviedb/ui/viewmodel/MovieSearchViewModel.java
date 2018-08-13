@@ -1,4 +1,4 @@
-package com.andyshon.moviedb.data.ui.viewmodel;
+package com.andyshon.moviedb.ui.viewmodel;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
@@ -60,8 +60,7 @@ public class MovieSearchViewModel extends AndroidViewModel {
 
         searchMoviesObserver = new DisposableObserver<MovieSearch>() {
             @Override
-            public void onComplete() {
-            }
+            public void onComplete() {}
 
             @Override
             public void onNext(MovieSearch movieSearch) {
